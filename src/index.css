@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - 1.5rem));
+  }
+}
+
+.animation-direction-reverse {
+  animation-direction: reverse;
+}
+
+.animation-play-state-paused {
+  animation-play-state: paused;
+}
