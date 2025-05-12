@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 const RegisterForm: React.FC = () => {
   const [formData, setFormData] = useState({
+    username: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -18,10 +19,53 @@ const RegisterForm: React.FC = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle registration logic here
-    console.log(formData);
+
+    if (
+      !formData.username ||
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword ||
+      !formData.agreeTerms
+    ) {
+      alert('❌ Todos los campos son obligatorios');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      alert('❌ Las contraseñas no coinciden');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          first_name: formData.firstName, // 🔁 corregido
+          last_name: formData.lastName,   // 🔁 corregido
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('✅ Usuario registrado correctamente');
+      } else {
+        alert('❌ ' + (data.error || 'Error al registrar'));
+      }
+    } catch (err) {
+      alert('❌ Error de conexión con el servidor');
+      console.error(err);
+    }
   };
 
   return (
@@ -32,6 +76,21 @@ const RegisterForm: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit}>
+        <div className="mb-6">
+          <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+            Username
+          </label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            value={formData.username}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+            required
+          />
+        </div>
+
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div>
             <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
@@ -43,7 +102,7 @@ const RegisterForm: React.FC = () => {
               type="text"
               value={formData.firstName}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition-colors"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md"
               required
             />
           </div>
@@ -57,7 +116,7 @@ const RegisterForm: React.FC = () => {
               type="text"
               value={formData.lastName}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition-colors"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md"
               required
             />
           </div>
@@ -73,8 +132,7 @@ const RegisterForm: React.FC = () => {
             type="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition-colors"
-            placeholder="your@email.com"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md"
             required
           />
         </div>
@@ -89,13 +147,9 @@ const RegisterForm: React.FC = () => {
             type="password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition-colors"
-            placeholder="••••••••"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md"
             required
           />
-          <p className="mt-1 text-xs text-gray-500">
-            Password must be at least 8 characters and include a number and a special character.
-          </p>
         </div>
 
         <div className="mb-6">
@@ -108,8 +162,7 @@ const RegisterForm: React.FC = () => {
             type="password"
             value={formData.confirmPassword}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none transition-colors"
-            placeholder="••••••••"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md"
             required
           />
         </div>
@@ -123,7 +176,7 @@ const RegisterForm: React.FC = () => {
                 type="checkbox"
                 checked={formData.agreeTerms}
                 onChange={handleChange}
-                className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-gray-300 rounded"
+                className="h-4 w-4 text-orange-500 border-gray-300 rounded"
                 required
               />
             </div>
@@ -144,38 +197,11 @@ const RegisterForm: React.FC = () => {
 
         <button
           type="submit"
-          className="w-full bg-orange-500 text-white py-2 px-4 rounded-md font-medium hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
+          className="w-full bg-orange-500 text-white py-2 px-4 rounded-md font-medium hover:bg-orange-600 transition-colors"
         >
           Create Account
         </button>
       </form>
-
-      <div className="mt-6">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or sign up with</span>
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors">
-            Google
-          </button>
-          <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors">
-            Facebook
-          </button>
-        </div>
-      </div>
-
-      <p className="text-center mt-8 text-sm text-gray-600">
-        Already have an account?{' '}
-        <a href="/login" className="font-medium text-orange-500 hover:text-orange-600">
-          Sign in
-        </a>
-      </p>
     </div>
   );
 };

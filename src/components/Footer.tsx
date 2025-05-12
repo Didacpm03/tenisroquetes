@@ -102,13 +102,13 @@ const Footer: React.FC = () => {
               <li className="flex items-start">
                 <MapPin size={20} className="text-gray-400 mr-3 mt-0.5" />
                 <span className="text-gray-400">
-                  123 Sneaker Street, Fashion District, New York, NY 10001
+                  Rambla Principal, 48, 08800 Vilanova i la Geltrú, Barcelona
                 </span>
               </li>
               <li className="flex items-center">
                 <Phone size={20} className="text-gray-400 mr-3" />
                 <a href="tel:+12125555555" className="text-gray-400 hover:text-white transition-colors">
-                  +1 (212) 555-5555
+                  +34 611 48 56 32 
                 </a>
               </li>
               <li className="flex items-center">

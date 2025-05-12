@@ -5,10 +5,43 @@ const LoginForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log({ email, password, rememberMe });
+
+    if (!email || !password) {
+      alert('❌ Email y contraseña son obligatorios');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('✅ Login exitoso');
+        console.log('Usuario:', data.user);
+
+        // Guardar sesión en localStorage si se quiere recordar la sesión
+        if (rememberMe) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
+
+        // Redirigir o hacer algo con el usuario
+        // window.location.href = '/dashboard'; // Si quieres redirigir a otra página
+      } else {
+        alert('❌ ' + (data.error || 'Error al iniciar sesión'));
+      }
+    } catch (err) {
+      alert('❌ Error de conexión con el servidor');
+      console.error(err);
+    }
   };
 
   return (
