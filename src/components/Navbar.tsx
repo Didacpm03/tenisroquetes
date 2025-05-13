@@ -17,6 +17,7 @@ const Navbar: React.FC<NavbarProps> = ({ onCartClick }) => {
     { name: 'Women', path: '/category/women' },
     { name: 'New Arrivals', path: '/new-arrivals' },
     { name: 'Sale', path: '/sale' },
+    { name: 'Contact', path: '/contact' },
   ];
 
   useEffect(() => {
@@ -125,6 +126,6 @@ const Navbar: React.FC<NavbarProps> = ({ onCartClick }) => {
       )}
     </nav>
   );
-};
+}
 
-export default Navbar;
+export default Navbar

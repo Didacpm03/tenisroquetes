@@ -4,6 +4,11 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import CategoryPage from './pages/CategoryPage';
+import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Contact from './pages/Contact';
+import FAQ from './pages/FAQ';
+import SizeGuide from './pages/SizeGuide';
 
 function App() {
   return (
@@ -15,6 +20,11 @@ function App() {
         <Route path="/category/:category" element={<CategoryPage />} />
         <Route path="/new-arrivals" element={<CategoryPage />} />
         <Route path="/sale" element={<CategoryPage />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/help" element={<FAQ />} />
+        <Route path="/size-guide" element={<SizeGuide />} />
       </Routes>
     </Router>
   );
