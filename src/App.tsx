@@ -9,6 +9,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
 import SizeGuide from './pages/SizeGuide';
+import Jordan4Page from './pages/jordan4';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/help" element={<FAQ />} />
         <Route path="/size-guide" element={<SizeGuide />} />
+        <Route path="/jordan4" element={<Jordan4Page />} />
       </Routes>
     </Router>
   );

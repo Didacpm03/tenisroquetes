@@ -4,52 +4,54 @@ const FeaturedSection: React.FC = () => {
   return (
     <div className="py-16 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* First section: Left image, right text */}
+
+        {/* First section: Jordan 4 feature */}
         <div className="flex flex-col lg:flex-row items-center mb-24">
           <div className="lg:w-1/2 mb-8 lg:mb-0 lg:pr-12">
-            <div className="relative">
-              <img
-                src="https://images.pexels.com/photos/1124466/pexels-photo-1124466.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-                alt="Premium quality sneakers"
-                className="rounded-lg shadow-xl"
-              />
-              <div className="absolute -bottom-6 -right-6 bg-orange-500 rounded-lg p-4 shadow-lg hidden md:block">
-                <p className="text-white font-bold text-xl">Premium Quality</p>
+            <a href="/jordan4">
+              <div className="relative group">
+                <img
+                  src="https://images.unsplash.com/photo-1617137968427-85924c201a22?auto=format&fit=crop&w=870&q=80"
+                  alt="Air Jordan 4"
+                  className="rounded-lg shadow-xl transform group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute -bottom-6 -right-6 bg-red-600 rounded-lg p-4 shadow-lg hidden md:block">
+                  <p className="text-white font-bold text-xl">Más Vendida</p>
+                </div>
               </div>
-            </div>
+            </a>
           </div>
           <div className="lg:w-1/2">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Crafted with Precision</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Air Jordan 4 Retro</h2>
             <p className="text-lg text-gray-600 mb-6">
-              Every pair of sneakers in our collection is selected for exceptional quality and craftsmanship. 
-              We partner with top brands who share our dedication to creating durable, comfortable footwear 
-              that doesn't compromise on style.
+              Una de las zapatillas más icónicas de todos los tiempos. Comodidad, estilo y herencia en un solo diseño. 
+              Ya disponible en múltiples tallas — ¡haz clic en la imagen para verla en detalle!
             </p>
             <ul className="space-y-3 mb-8">
               <li className="flex items-start">
                 <svg className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                 </svg>
-                <span className="text-gray-700">Premium materials for ultimate durability</span>
+                <span className="text-gray-700">Estilo retro con tecnología moderna</span>
               </li>
               <li className="flex items-start">
                 <svg className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                 </svg>
-                <span className="text-gray-700">Engineered for all-day comfort</span>
+                <span className="text-gray-700">Diseño icónico para verdaderos fans</span>
               </li>
               <li className="flex items-start">
                 <svg className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                 </svg>
-                <span className="text-gray-700">Authentic products with brand guarantee</span>
+                <span className="text-gray-700">Disponibilidad limitada — ¡No te la pierdas!</span>
               </li>
             </ul>
             <a
-              href="/about"
-              className="inline-flex items-center text-orange-500 font-medium hover:text-orange-600 transition-colors"
+              href="/jordan4"
+              className="inline-flex items-center text-red-600 font-medium hover:text-red-700 transition-colors"
             >
-              Learn more about our quality standards
+              Ver detalles del producto
               <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
@@ -96,6 +98,7 @@ const FeaturedSection: React.FC = () => {
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
