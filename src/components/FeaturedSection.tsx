@@ -11,7 +11,7 @@ const FeaturedSection: React.FC = () => {
             <a href="/jordan4">
               <div className="relative group">
                 <img
-                  src="https://images.unsplash.com/photo-1617137968427-85924c201a22?auto=format&fit=crop&w=870&q=80"
+                  src="https://images.stockx.com/360/Air-Jordan-4-Retro-Fear-2024/Images/Air-Jordan-4-Retro-Fear-2024/Lv2/img05.jpg"
                   alt="Air Jordan 4"
                   className="rounded-lg shadow-xl transform group-hover:scale-105 transition-transform duration-300"
                 />

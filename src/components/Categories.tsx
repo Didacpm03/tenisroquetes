@@ -3,31 +3,64 @@ import { Link } from 'react-router-dom';
 import { Marquee } from './ui/marquee';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
+import imgUniversitaria from '../assets/png/universitaria.png';
+import imgEstudiantina from '../assets/png/estudiantina.png';
+import imgTuna from '../assets/png/latuna.png';
+import imgReunions from '../assets/png/reunions.png';
+import imgAustria from '../assets/png/arbresaustria.png';
+import imgVilanova from '../assets/png/arbresvilanova.png';
+import imgViatge from '../assets/png/viatge.png';
+import imgMariatzell from '../assets/png/mariatzell.png';
+
 const Categories: React.FC = () => {
   const categories = [
     {
       id: 1,
-      name: 'Running',
-      image: 'https://images.pexels.com/photos/2385477/pexels-photo-2385477.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-      count: 32,
+      name: 'La vida universitària',
+      slug: 'universitaria',
+      image: imgUniversitaria,
     },
     {
       id: 2,
-      name: 'Basketball',
-      image: 'https://images.pexels.com/photos/1456706/pexels-photo-1456706.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-      count: 28,
+      name: 'La Estudiantina',
+      slug: 'estudiantina',
+      image: imgEstudiantina,
+    },
+        {
+      id: 6,
+      name: 'Arbres Vilanova',
+      slug: 'arbres-vilanova',
+      image: imgVilanova,
     },
     {
       id: 3,
-      name: 'Lifestyle',
-      image: 'https://images.pexels.com/photos/1478442/pexels-photo-1478442.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-      count: 45,
+      name: 'La Tuna',
+      slug: 'tuna',
+      image: imgTuna,
     },
     {
       id: 4,
-      name: 'Limited Edition',
-      image: 'https://images.pexels.com/photos/2385686/pexels-photo-2385686.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-      count: 16,
+      name: 'Reunions',
+      slug: 'reunions',
+      image: imgReunions,
+    },
+    {
+      id: 5,
+      name: 'Arbres Àustria',
+      slug: 'arbres-austria',
+      image: imgAustria,
+    },
+    {
+      id: 7,
+      name: 'Viatge final de carrera',
+      slug: 'viatge-final',
+      image: imgViatge,
+    },
+    {
+      id: 8,
+      name: 'Mariatzell',
+      slug: 'mariatzell',
+      image: imgMariatzell,
     },
   ];
 
@@ -45,7 +78,7 @@ const Categories: React.FC = () => {
 
   const CategoryCard = ({ category }: { category: typeof categories[0] }) => (
     <Link
-      to={`/category/${category.name.toLowerCase()}`}
+      to={`/categoria/${category.slug}`}
       className="relative h-64 w-80 overflow-hidden rounded-xl mx-4 group"
     >
       <motion.img
@@ -58,7 +91,6 @@ const Categories: React.FC = () => {
       <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70" />
       <div className="absolute bottom-0 left-0 p-6">
         <h3 className="text-xl font-bold text-white">{category.name}</h3>
-        <p className="text-sm text-gray-300">{category.count} Products</p>
       </div>
     </Link>
   );
@@ -66,13 +98,10 @@ const Categories: React.FC = () => {
   return (
     <div className="py-16 bg-gray-50" ref={ref}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div 
-          className="text-center"
-          style={{ scale, opacity }}
-        >
-          <h2 className="text-3xl font-bold text-gray-900">Shop by Category</h2>
+        <motion.div className="text-center" style={{ scale, opacity }}>
+          <h2 className="text-3xl font-bold text-gray-900">Explora per temàtica</h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            Explore our wide range of sneakers grouped by style and purpose.
+            Descobreix els moments, llocs i records que han marcat la Promoció de 1961.
           </p>
         </motion.div>
 

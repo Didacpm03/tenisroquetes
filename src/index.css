@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ya existentes */
 @keyframes marquee {
   from {
     transform: translateX(0);
@@ -18,3 +19,5 @@
 .animation-play-state-paused {
   animation-play-state: paused;
 }
+
+

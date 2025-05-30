@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
-import FeaturedProducts from '../components/FeaturedProducts';
 import Categories from '../components/Categories';
+import FeaturedProducts from '../components/FeaturedProducts';
 import FeaturedSection from '../components/FeaturedSection';
 import BrandsBanner from '../components/BrandsBanner';
 import Footer from '../components/Footer';
@@ -16,8 +16,8 @@ const Home: React.FC = () => {
     <div className="min-h-screen">
       <Navbar onCartClick={() => setIsCartOpen(true)} />
       <HeroSection />
-      <FeaturedProducts products={mockProducts} />
       <Categories />
+      <FeaturedProducts products={mockProducts} />
       <FeaturedSection />
       <BrandsBanner />
       <Footer />

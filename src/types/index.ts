@@ -1,26 +1,24 @@
-export interface Link {
-  name: string;
-  path: string;
-}
-
 export interface Product {
-  id: string;
+  id: number;
   name: string;
   brand: string;
   price: number;
   salePrice?: number;
   image: string;
+  category: string;
   rating: number;
   reviewCount: number;
   onSale: boolean;
   isNew: boolean;
-  colors?: string[];
-  sizes?: string[];
-  description?: string;
+  styleCategory: string;
+  colors: string[];
+  sizes: string[];
+  description: string;
+  href?: string;
 }
 
 export interface CartItem {
-  id: string;
+  id: number; // antes era string
   name: string;
   brand: string;
   price: number;

@@ -12,8 +12,7 @@ const Footer: React.FC = () => {
               SNKR<span className="text-orange-500">HUB</span>
             </h2>
             <p className="text-gray-400 mb-6">
-              The ultimate destination for sneaker enthusiasts. Discover limited editions,
-              classics, and the latest drops from top brands.
+              Bienvenidos a la tienda del proyecto SNKRHUB, donde la moda y la tecnología se encuentran.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -33,7 +32,7 @@ const Footer: React.FC = () => {
 
           {/* Shop links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Shop</h3>
+            <h3 className="text-lg font-semibold mb-4">Tienda</h3>
             <ul className="space-y-3">
               <li>
                 <a href="/category/men" className="text-gray-400 hover:text-white transition-colors">
@@ -97,49 +96,30 @@ const Footer: React.FC = () => {
 
           {/* Contact information */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Contact</h3>
+            <h3 className="text-lg font-semibold mb-4">Participantes</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
-                <MapPin size={20} className="text-gray-400 mr-3 mt-0.5" />
-                <span className="text-gray-400">
-                  Rambla Principal, 48, 08800 Vilanova i la Geltrú, Barcelona
+                <Mail size={20} className="text-gray-400 mr-3" /><span className="text-gray-400">
+                  Didac Paz Miquel
                 </span>
               </li>
               <li className="flex items-center">
-                <Phone size={20} className="text-gray-400 mr-3" />
+                <Mail size={20} className="text-gray-400 mr-3" />
                 <a href="tel:+12125555555" className="text-gray-400 hover:text-white transition-colors">
-                  +34 611 48 56 32 
+                  David Miguel Aguirre
                 </a>
               </li>
               <li className="flex items-center">
                 <Mail size={20} className="text-gray-400 mr-3" />
                 <a href="mailto:info@snkrhub.com" className="text-gray-400 hover:text-white transition-colors">
-                  info@snkrhub.com
+                  Alex Bujardon
                 </a>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Newsletter */}
-        <div className="border-t border-gray-800 mt-12 pt-8">
-          <div className="max-w-2xl mx-auto text-center">
-            <h3 className="text-lg font-semibold mb-2">Subscribe to our Newsletter</h3>
-            <p className="text-gray-400 mb-4">
-              Get exclusive offers, new release alerts, and insider news.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="email"
-                placeholder="Your email address"
-                className="flex-grow px-4 py-2 rounded-l bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
-              <button className="px-6 py-2 bg-orange-500 text-white font-medium rounded-r hover:bg-orange-600 transition-colors">
-                Subscribe
-              </button>
-            </div>
-          </div>
-        </div>
+      
 
         {/* Copyright */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">

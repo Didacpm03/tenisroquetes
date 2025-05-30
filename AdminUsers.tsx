@@ -53,9 +53,9 @@ const AdminUsers: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar onCartClick={() => {}} />
-      <main className="flex-grow bg-gray-100 p-6 flex flex-col items-center"> <br></br>
+    <div className="min-h-screen flex flex-col"><br></br>
+      <Navbar onCartClick={() => {}} /><br></br>
+      <main className="flex-grow bg-gray-100 p-6 flex flex-col items-center">
         <h1 className="text-2xl font-bold mb-4 text-center">Clientes Registrados</h1>
 
         <a

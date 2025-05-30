@@ -1,34 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
-import ProductViewer from '../components/ProductViewer';
-import ProductHeader from '../components/ProductHeader';
-import PricingSection from '../components/PricingSection';
+import ProductViewer_cacao from '../components/dunk_low_cacao/ProductViewer_cacao';
+import ProductHeader_cacao from '../components/dunk_low_cacao/ProductHeader_cacao';
+import PricingSection_cacao from '../components/dunk_low_cacao/PricingSection_cacao';
 import SizeSelector from '../components/SizeSelector';
 import PriceGraph from '../components/PriceGraph';
 import ProductDetails from '../components/ProductDetails';
 import RelatedProducts from '../components/RelatedProducts';
 import Footer from '../components/Footer';
-import Cart from '../components/Cart';
+import Cart from '../components/Cart';  
 
-const Jordan4Page: React.FC = () => {
-  const [isCartOpen, setIsCartOpen] = React.useState(false);
+const DunkLowCacaoPage: React.FC = () => {
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-white">
       <Navbar onCartClick={() => setIsCartOpen(true)} />
-      <div className="mt-12" /> {/* Espacio aumentado entre Navbar y contenido */}
+      <div className="mt-12" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row lg:space-x-10">
           {/* Left Column - Product Viewer */}
           <div className="lg:w-1/2">
-            <ProductViewer />
+            <ProductViewer_cacao />
           </div>
 
           {/* Right Column - Product Info */}
           <div className="lg:w-1/2 mt-8 lg:mt-0">
-            <ProductHeader />
-            <PricingSection />
+            <ProductHeader_cacao />
+            <PricingSection_cacao />
             <SizeSelector />
             <div className="mt-8">
               <PriceGraph />
@@ -50,4 +50,4 @@ const Jordan4Page: React.FC = () => {
   );
 };
 
-export default Jordan4Page;
+export default DunkLowCacaoPage;

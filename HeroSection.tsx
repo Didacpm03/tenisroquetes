@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import heroImage from ''; // importa tu imagen
 
 const HeroSection: React.FC = () => {
   const ref = React.useRef(null);
@@ -17,13 +18,12 @@ const HeroSection: React.FC = () => {
       <motion.div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')",
+          backgroundImage: `url(${heroImage})`,
           scale,
           opacity,
           y
         }}
       />
-      
       <div className="absolute inset-0 bg-gradient-to-r from-black to-transparent opacity-80" />
       
       <div className="relative h-full flex items-center">

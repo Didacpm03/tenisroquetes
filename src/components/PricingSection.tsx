@@ -1,9 +1,27 @@
 import React, { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const PricingSection: React.FC = () => {
   const [tab, setTab] = useState<'buy' | 'sell'>('buy');
-  
+  const navigate = useNavigate();
+
+  const handleBuyNow = () => {
+    const product = {
+      name: 'Air Jordan 4',
+      description: 'Zapatillas deportivas de edición limitada',
+      price: 129,
+      image: 'https://images.stockx.com/360/Air-Jordan-4-Retro-Fear-2024/Images/Air-Jordan-4-Retro-Fear-2024/Lv2/img05.jpg', // actualiza esta ruta si es distinta
+    };
+
+    const storedCart = localStorage.getItem('cart');
+    const cart = storedCart ? JSON.parse(storedCart) : [];
+
+    cart.push(product);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    navigate('/cesta');
+  };
+
   return (
     <div className="pricing-section border border-gray-200 rounded-lg overflow-hidden">
       <div className="flex">
@@ -40,7 +58,10 @@ const PricingSection: React.FC = () => {
           </div>
         </div>
         
-        <button className="w-full bg-black hover:bg-gray-800 text-white font-medium py-3 px-6 rounded flex items-center justify-center space-x-2 transition-colors">
+        <button
+          className="w-full bg-black hover:bg-gray-800 text-white font-medium py-3 px-6 rounded flex items-center justify-center space-x-2 transition-colors"
+          onClick={tab === 'buy' ? handleBuyNow : undefined}
+        >
           <span>{tab === 'buy' ? 'Buy Now' : 'Sell Now'}</span>
           <ArrowRight size={16} />
         </button>

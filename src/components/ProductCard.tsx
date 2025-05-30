@@ -1,12 +1,21 @@
 import React from 'react';
 import { ShoppingBag } from 'lucide-react';
 import { Product } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 interface ProductCardProps {
   product: Product;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const navigate = useNavigate();
+
+  const handleComprar = () => {
+    if (product.href) {
+      navigate(product.href);
+    }
+  };
+
   return (
     <div className="group relative overflow-hidden rounded-lg transition-all duration-300 hover:shadow-lg">
       {/* Sale badge */}
@@ -15,7 +24,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           SALE
         </div>
       )}
-      
+
       {/* New badge */}
       {product.isNew && (
         <div className="absolute top-4 left-4 z-10 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">
@@ -30,13 +39,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           alt={product.name}
           className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-500"
         />
-        
+
         {/* Quick action buttons */}
         <div className="absolute bottom-0 left-0 right-0 bg-white bg-opacity-90 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
           <div className="flex justify-center space-x-2">
-            <button className="bg-gray-900 text-white px-3 py-2 rounded flex items-center justify-center text-sm font-medium flex-grow hover:bg-gray-800 transition-colors">
+            <button
+              onClick={handleComprar}
+              className="bg-gray-900 text-white px-3 py-2 rounded flex items-center justify-center text-sm font-medium flex-grow hover:bg-gray-800 transition-colors"
+            >
               <ShoppingBag size={18} className="mr-2" />
-              Add to Cart
+              Comprar
             </button>
           </div>
         </div>
@@ -61,9 +73,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             {[...Array(5)].map((_, i) => (
               <svg
                 key={i}
-                className={`w-4 h-4 ${
-                  i < product.rating ? 'text-yellow-400' : 'text-gray-300'
-                }`}
+                className={`w-4 h-4 ${i < Math.round(product.rating) ? 'text-yellow-400' : 'text-gray-300'}`}
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -79,3 +89,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 };
 
 export default ProductCard;
+
+
+
