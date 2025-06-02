@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 const categories = [
   { name: 'La vida universitària', path: '/universitaria' },
   { name: 'Estudiantina', path: '/estudiantina' },
-  { name: 'La Tuna', path: '/tuna' },
+  { name: 'Austria', path: '/austria' },
   { name: 'Reunions', path: '/reunions' },
   { name: 'Arbres Àustria', path: '/arbres-austria' },
   { name: 'Arbres Vilanova', path: '/arbres-vilanova' },
