@@ -11,9 +11,6 @@ import foto6 from "../assets/png/austria4.jpg";
 import foto7 from "../assets/png/austria5.jpg";
 import foto8 from "../assets/png/austria6.jpg";
 
-
-import viatgeVideo from "../assets/videos/2010 Tuna 50 Aniversario.mp4";
-
 const pdfLinks = [
   "/pdfs/austria/austria1.pdf",
   "/pdfs/austria/austria2.pdf",
@@ -144,7 +141,7 @@ const AustriaPage: React.FC = () => {
               {/* Video de fondo */}
               <video
                 className="absolute top-0 left-0 w-full h-full object-cover"
-                src={viatgeVideo}
+                src={foto3}
                 autoPlay
                 loop
                 muted
