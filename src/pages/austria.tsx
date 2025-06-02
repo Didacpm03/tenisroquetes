@@ -2,15 +2,23 @@ import React from 'react';
 import Navbar from "../components/Navbar";
 import MusicCarousel from "../components/MusicCarousel";
 
-import foto1 from "../assets/png/fototodos.png";
-import foto2 from "../assets/png/fototodos.png";
-import foto3 from "../assets/png/fototodos.png";
+import foto1 from "../assets/png/premsa1.png";
+import foto2 from "../assets/png/premsa2.png";
+import foto3 from "../assets/png/premsa3.png";
+import foto4 from "../assets/png/austria1.jpg";
+import foto5 from "../assets/png/austria2.jpg";
+import foto6 from "../assets/png/austria4.jpg";
+import foto7 from "../assets/png/austria5.jpg";
+import foto8 from "../assets/png/austria6.jpg";
+
+
 import viatgeVideo from "../assets/videos/2010 Tuna 50 Aniversario.mp4";
 
 const pdfLinks = [
-  "/pdfs/austria1.pdf",
-  "/pdfs/austria2.pdf",
-  "/pdfs/austria3.pdf",
+  "/pdfs/austria/austria1.pdf",
+  "/pdfs/austria/austria2.pdf",
+  "/pdfs/austria/austria3.pdf",
+  "/pdfs/austria/premsa_todos.pdf",
 ];
 
 const imageTextData = [
@@ -156,51 +164,110 @@ const AustriaPage: React.FC = () => {
             </section>
 
 
-            {/* Text Block 1 - Centrado */}
-            <div className="space-y-6 text-center max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-indigo-900">
-                La Tuna de la E.T.P.I. de Vilanova i la Geltrú i el seu llegat a Mariazell, Àustria
-              </h2>
+            {/* Text Block 1 - Imágenes izquierda, texto derecha */}
+            <div className="flex flex-col md:flex-row gap-8 max-w-6xl mx-auto">
+              {/* Columna izquierda - Imágenes */}
+              <div className="md:w-1/3 space-y-6">
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+                  <img
+                    src={foto4}
+                    alt="Recorte de prensa 1"
+                    className="w-full h-auto object-cover"
+                    loading="lazy"
+                  />
 
-              <p className="text-lg leading-relaxed text-gray-800">
-                <strong className="text-indigo-800">Un viatge històric d'amistat i tradició entre Espanya i Àustria</strong>
-              </p>
+                </div>
 
-              <p className="text-lg leading-relaxed text-gray-800">
-                La Tuna de l’Escola Tècnica de Perits Industrials (E.T.P.I.) de Vilanova i la Geltrú, formada per estudiants entre 1956 i 1961, va deixar un llegat inesborrable en Mariazell, Àustria, gràcies al seu viatge en 1960. Aquest grup de joves, no sols va portar amb si música i tradició, sinó que també va establir un vincle cultural i religiós amb Àustria que perdura fins avui.
-              </p>
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+                  <img
+                    src={foto5}
+                    alt="Recorte de prensa 2"
+                    className="w-full h-auto object-cover"
+                    loading="lazy"
+                  />
 
-              <p className="text-lg leading-relaxed text-gray-800">
-                <strong className="text-indigo-800">El viatge de 1960: Un gest d'amistat i fe</strong>
-              </p>
+                </div>
 
-              <p className="text-lg leading-relaxed text-gray-800">
-                Al desembre de 1960, la Tuna va emprendre un viatge a Àustria. Durant aquest viatge, els tunos van decidir portar una còpia exacta de la Verge de Montserrat, coneguda com «La Moreneta», per a donar-la a la Basílica de Mariazell. Aquest gest simbòlic no sols va ser un acte de fe, sinó també un missatge de solidaritat i amistat entre els pobles d’Espanya i Àustria.
-              </p>
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+                  <img
+                    src={foto6}
+                    alt="Recorte de prensa 3"
+                    className="w-full h-auto object-cover"
+                    loading="lazy"
+                  />
 
-              <p className="text-lg leading-relaxed text-gray-800">
-                <strong className="text-indigo-800">La Promoció de 1961: Mantenint viva la tradició</strong>
-              </p>
+                </div>
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+                  <img
+                    src={foto7}
+                    alt="Recorte de prensa 3"
+                    className="w-full h-auto object-cover"
+                    loading="lazy"
+                  />
 
-              <p className="text-lg leading-relaxed text-gray-800">
-                Després de finalitzar els seus estudis en 1961, els membres de la Tuna van formar la «Promoció de 1961», un grup que es va comprometre a mantenir viva la tradició i l’amistat amb Àustria. Al llarg dels anys, aquesta promoció ha organitzat nombrosos actes, intercanvis i esdeveniments que han enfortit els llaços amb Àustria. <br></br> <br></br>
-                Un de les fites més importants va ser el lliurament anual de palmes i palmones en Mariazell durant el Diumenge de Rams, una tradició que va començar en 1972 i que s’ha mantingut durant més de 50 anys. Aquest acte simbòlic, en el qual s’intercanvien palmes entre els nens de Mariazell i els visitants espanyols, s’ha convertit en un símbol de pau i amistat entre tots dos països.
-              </p>
+                </div>
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+                  <img
+                    src={foto8}
+                    alt="Recorte de prensa 3"
+                    className="w-full h-auto object-cover"
+                    loading="lazy"
+                  />
 
-              <p className="text-lg leading-relaxed text-gray-800">
-                <strong className="text-indigo-800">El llegat de la Tuna en Mariazell</strong>
-              </p>
+                </div>
 
-              <p className="text-lg leading-relaxed text-gray-800">
-                La Tuna no sols va deixar una petjada cultural en Mariazell, sinó que també va contribuir a la restauració de la Basílica i a la promoció del turisme a la regió. En 2010, amb motiu del 50 aniversari del lliurament de la Verge de Montserrat, es van celebrar diversos actes commemoratius en Mariazell, incloent-hi una missa solemne i el lliurament d’una medalla d’or de la ciutat a Jaime M. Montanera, qui fora el cap de la Tuna en 1960. <br></br><br></br>
+              </div>
 
-                A més, en 2012, la Tuna va donar un vestit tradicional al Museu de Mariazell, com a símbol de l’amistat entre totes dues comunitats. Aquest vestit, que inclou les cintes recollides pels tunos durant els seus anys d’activitat, és un testimoniatge viu de la història compartida entre Espanya i Àustria.
-              </p>
+              {/* Columna derecha - Texto */}
+              <div className="md:w-2/3 space-y-6">
+                <h2 className="text-3xl font-bold text-indigo-900">
+                  La Tuna de la E.T.P.I. de Vilanova i la Geltrú i el seu llegat a Mariazell, Àustria
+                </h2>
 
-              <div className="flex justify-center mt-8">
-                <DownloadButton pdfLink={pdfLinks[0]} className="rounded-full px-6 py-3 text-lg" />
+                <p className="text-lg leading-relaxed text-gray-800">
+                  <strong className="text-indigo-800">Un viatge històric d'amistat i tradició entre Espanya i Àustria</strong>
+                </p>
+
+                <p className="text-lg leading-relaxed text-gray-800">
+                  La Tuna de l'Escola Tècnica de Perits Industrials (E.T.P.I.) de Vilanova i la Geltrú, formada per estudiants entre 1956 i 1961, va deixar un llegat inesborrable en Mariazell, Àustria, gràcies al seu viatge en 1960. Aquest grup de joves, no sols va portar amb si música i tradició, sinó que també va establir un vincle cultural i religiós amb Àustria que perdura fins avui.
+                </p>
+
+                <p className="text-lg leading-relaxed text-gray-800">
+                  <strong className="text-indigo-800">El viatge de 1960: Un gest d'amistat i fe</strong>
+                </p>
+
+                <p className="text-lg leading-relaxed text-gray-800">
+                  Al desembre de 1960, la Tuna va emprendre un viatge a Àustria. Durant aquest viatge, els tunos van decidir portar una còpia exacta de la Verge de Montserrat, coneguda com «La Moreneta», per a donar-la a la Basílica de Mariazell. Aquest gest simbòlic no sols va ser un acte de fe, sinó també un missatge de solidaritat i amistat entre els pobles d'Espanya i Àustria.
+                </p>
+
+                <p className="text-lg leading-relaxed text-gray-800">
+                  <strong className="text-indigo-800">La Promoció de 1961: Mantenint viva la tradició</strong>
+                </p>
+
+                <p className="text-lg leading-relaxed text-gray-800">
+                  Després de finalitzar els seus estudis en 1961, els membres de la Tuna van formar la «Promoció de 1961», un grup que es va comprometre a mantenir viva la tradició i l'amistat amb Àustria. Al llarg dels anys, aquesta promoció ha organitzat nombrosos actes, intercanvis i esdeveniments que han enfortit els llaços amb Àustria.
+                </p>
+                <p className="text-lg leading-relaxed text-gray-800">
+                  Un de les fites més importants va ser el lliurament anual de palmes i palmones en Mariazell durant el Diumenge de Rams, una tradició que va començar en 1972 i que s'ha mantingut durant més de 50 anys. Aquest acte simbòlic, en el qual s'intercanvien palmes entre els nens de Mariazell i els visitants espanyols, s'ha convertit en un símbol de pau i amistat entre tots dos països.
+                </p>
+
+                <p className="text-lg leading-relaxed text-gray-800">
+                  <strong className="text-indigo-800">El llegat de la Tuna en Mariazell</strong>
+                </p>
+
+                <p className="text-lg leading-relaxed text-gray-800">
+                  La Tuna no sols va deixar una petjada cultural en Mariazell, sinó que també va contribuir a la restauració de la Basílica i a la promoció del turisme a la regió. En 2010, amb motiu del 50 aniversari del lliurament de la Verge de Montserrat, es van celebrar diversos actes commemoratius en Mariazell, incloent-hi una missa solemne i el lliurament d'una medalla d'or de la ciutat a Jaime M. Montanera, qui fora el cap de la Tuna en 1960.
+                </p>
+                <p className="text-lg leading-relaxed text-gray-800">
+                  A més, en 2012, la Tuna va donar un vestit tradicional al Museu de Mariazell, com a símbol de l'amistat entre totes dues comunitats. Aquest vestit, que inclou les cintes recollides pels tunos durant els seus anys d'activitat, és un testimoniatge viu de la història compartida entre Espanya i Àustria.
+                </p>
+
+                <div className="flex justify-center md:justify-start mt-8">
+                  <DownloadButton pdfLink={pdfLinks[0]} className="rounded-full px-50 py-3 text-lg" />
+                </div>
               </div>
             </div>
+
 
             {/* Text Block 2 - Centrado */}
             <div className="space-y-6 text-center max-w-4xl mx-auto">
@@ -300,6 +367,11 @@ const AustriaPage: React.FC = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Aquí va el botón de descarga */}
+              <div className="flex justify-center mt-8">
+                <DownloadButton pdfLink={pdfLinks[3]} className="rounded-full px-6 py-3 text-lg" />
               </div>
             </section>
 

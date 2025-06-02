@@ -20,4 +20,29 @@
   animation-play-state: paused;
 }
 
+@keyframes borderColors {
+  0% {
+    border-color: #3b82f6; /* azul */
+  }
+  25% {
+    border-color: #ec4899; /* rosa */
+  }
+  50% {
+    border-color: #8b5cf6; /* morado */
+  }
+  75% {
+    border-color: #10b981; /* verde */
+  }
+  100% {
+    border-color: #3b82f6;
+  }
+}
+
+.border-animated {
+  border-style: solid;
+  border-width: 6px; /* un poco más grueso */
+  border-radius: 1rem; /* bordes redondeados, como tienes en el div */
+  animation: borderColors 6s linear infinite;
+  box-sizing: border-box;
+}
 
