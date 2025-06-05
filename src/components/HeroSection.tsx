@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import fotoportada from '../assets/png/fototodos.png'; // importa tu imagen
+import fotoportada from '../assets/png/tenis.png'; // importa tu imagen
 
 const HeroSection: React.FC = () => {
   const ref = React.useRef(null);
@@ -34,23 +34,13 @@ const HeroSection: React.FC = () => {
           transition={{ duration: 0.8 }}
         >
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight">
-            PROMOCIÓ <br />
-            <span className="text-orange-500">1961</span>
+            TENIS <br />
+            <span className="text-orange-500">ROQUETES</span>
           </h1>
           <p className="mt-4 text-lg sm:text-xl text-gray-300">
-            UPC VILANOVA I LA GELTRÚ
+            LA NUEVA MANERA DE RESERVAR!
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            
-            <motion.a
-              href="/new-arrivals"
-              className="px-8 py-3 bg-transparent border border-white text-white font-medium rounded-md hover:bg-white/10 transition-colors inline-flex items-center justify-center"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Preguntes freqüents
-            </motion.a>
-          </div>
+          
         </motion.div>
       </div>
 

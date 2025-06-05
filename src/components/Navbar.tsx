@@ -1,205 +1,102 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from "react-router-dom";
+import Pelota from "../assets/png/pelota.png";
+import { useEffect, useState } from "react";
 
-const categories = [
-  { name: 'La vida universitària', path: '/universitaria' },
-  { name: 'Estudiantina', path: '/estudiantina' },
-  { name: 'Austria', path: '/austria' },
-  { name: 'Reunions', path: '/reunions' },
-  { name: 'Arbres Àustria', path: '/arbres-austria' },
-  { name: 'Arbres Vilanova', path: '/arbres-vilanova' },
-  { name: 'Viatge final de carrera', path: '/viatge-final' },
-  { name: 'Mariatzell', path: '/mariatzell' },
-];
-
-const OpenIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-5 w-5 inline-block"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-  </svg>
-);
-
-const CloseIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-5 w-5 inline-block"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-  </svg>
-);
-
-const Navbar: React.FC = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const location = useLocation();
+export default function Navbar() {
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    setMenuOpen(false);
-    setDropdownOpen(false);
-  }, [location]);
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      setUser(JSON.parse(userStr));
+    }
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
-      }
+    const handleStorageChange = () => {
+      const userStr = localStorage.getItem("user");
+      setUser(userStr ? JSON.parse(userStr) : null);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const toggleMenu = () => {
-    setMenuOpen((prev) => !prev);
-    if (dropdownOpen) setDropdownOpen(false);
-  };
-
-  const toggleDropdown = () => {
-    setDropdownOpen((prev) => !prev);
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    setUser(null);
+    window.location.href = "/";
   };
 
   return (
-    <>
-      {/* Etiqueta toggle fija arriba centro */}
-      <div
-        onClick={toggleMenu}
-        className="fixed top-1 left-1/2 transform -translate-x-1/2 z-50 cursor-pointer
-          bg-yellow-400 text-black font-semibold px-4 py-1 rounded-full
-          shadow-lg hover:bg-yellow-500 transition-colors select-none
-          backdrop-filter backdrop-blur-md flex items-center space-x-2"
-        title={menuOpen ? 'Cerrar menú' : 'Mostrar menú'}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') toggleMenu();
-        }}
+    <nav
+      className="fixed top-0 left-0 w-full z-50 shadow-md py-4 px-8 flex justify-between items-center text-white"
+      style={{
+        background: "linear-gradient(270deg, #8e44ad, #3498db, #1abc9c, #f39c12)",
+        backgroundSize: "800% 800%",
+        animation: "navbarGradient 15s ease infinite",
+      }}
+    >
+      {/* Logo */}
+      <Link
+        to="/"
+        className="text-2xl font-extrabold hover:scale-105 transition-transform"
       >
-        {menuOpen ? (
+        Tenis Roquetes
+      </Link>
+
+      {/* Enlaces */}
+      <div className="flex space-x-6 font-semibold text-lg items-center">
+        <Link to="/" className="hover:text-yellow-200 transition">Inicio</Link>
+        <Link to="/reservar" className="hover:text-yellow-200 transition">Reservar</Link>
+        <Link to="/mis-reservas" className="hover:text-yellow-200 transition">Mis Reservas</Link>
+        <Link to="/clasificaciones" className="hover:text-yellow-200 transition">Clasificación</Link>
+        <Link to="/partidos" className="hover:text-yellow-200 transition">Mis Partidos</Link>
+        <Link to="/contacto" className="hover:text-yellow-200 transition">Contacto</Link>
+        <Link to="/super-admin" className="hover:text-yellow-200 transition">Admin</Link>
+
+        {user ? (
           <>
-            <span>Cerrar</span>
-            <CloseIcon />
+            <span className="text-yellow-200">Hola, {user.nombre || user.username || user.email?.split('@')[0]}</span>
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 px-4 py-1 rounded-lg text-white transition"
+            >
+              Cerrar sesión
+            </button>
           </>
         ) : (
-          <>
-            <span>Menú</span>
-            <OpenIcon />
-          </>
+          <Link to="/login" className="hover:text-yellow-200 transition">Login</Link>
         )}
       </div>
 
-      {/* Navbar con slide down/up y fondo animado */}
-      <nav
-        className={`fixed top-0 left-0 w-full z-40 transition-transform duration-400 ease-in-out
-          ${menuOpen ? 'translate-y-0' : '-translate-y-full'}`}
+      {/* Pelota animada */}
+      <div
+        className="absolute top-1/2 transform -translate-y-1/2 w-10 h-10 pointer-events-none"
         style={{
-          background:
-            'linear-gradient(270deg, #ff9a9e, #fad0c4, #a18cd1, #fbc7a4, #ff9a9e)',
-          backgroundSize: '800% 800%',
-          animation: 'gradientShift 20s ease infinite',
-          backdropFilter: 'blur(14px)',
-          WebkitBackdropFilter: 'blur(14px)',
-          boxShadow: '0 4px 12px rgb(0 0 0 / 0.4)',
+          animation: "moveBall 10s ease-in-out infinite alternate",
         }}
       >
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center text-black font-semibold">
-          <Link
-            to="/"
-            className="text-2xl font-bold hover:text-yellow-700 transition"
-            onClick={() => setMenuOpen(false)}
-          >
-            Promo1961
-          </Link>
+        <img
+          src={Pelota}
+          alt="Pelota de tenis"
+          className="w-full h-full object-contain drop-shadow-xl"
+        />
+      </div>
 
-          {/* Desktop menu */}
-          <div
-            className="hidden md:flex items-center space-x-8 relative"
-            ref={dropdownRef}
-          >
-            <button
-              onClick={toggleDropdown}
-              className="flex items-center space-x-1 hover:text-yellow-700 transition focus:outline-none"
-              aria-haspopup="true"
-              aria-expanded={dropdownOpen}
-            >
-              <span>Pàgines Promoció 61</span>
-              <svg
-                className={`w-4 h-4 transform transition-transform ${
-                  dropdownOpen ? 'rotate-180' : ''
-                }`}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {dropdownOpen && (
-              <div
-                className="absolute top-full left-0 mt-2 w-64 bg-white rounded-md shadow-lg py-2
-                 ring-1 ring-black ring-opacity-10 z-50 scale-up"
-              >
-                {categories.map(({ name, path }) => (
-                  <Link
-                    key={path}
-                    to={path}
-                    className="block px-4 py-2 hover:bg-yellow-400 hover:text-black transition font-medium"
-                    onClick={() => {
-                      setDropdownOpen(false);
-                      setMenuOpen(false);
-                    }}
-                  >
-                    {name}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Estilos animados */}
-      <style>{`
-        @keyframes gradientShift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @keyframes fadeIn {
-          from {opacity: 0;}
-          to {opacity: 1;}
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease forwards;
-        }
-        .scale-up {
-          transform-origin: top left;
-          animation: scaleUp 0.3s ease forwards;
-        }
-        @keyframes scaleUp {
-          0% {
-            opacity: 0;
-            transform: scale(0.95);
+      {/* Animaciones globales */}
+      <style>
+        {`
+          @keyframes navbarGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
           }
-          100% {
-            opacity: 1;
-            transform: scale(1);
+
+          @keyframes moveBall {
+            0% { transform: translateX(0) translateY(-50%); }
+            100% { transform: translateX(calc(100vw - 40px)) translateY(-50%); }
           }
-        }
-      `}</style>
-    </>
+        `}
+      </style>
+    </nav>
   );
-};
-
-export default Navbar;
+}

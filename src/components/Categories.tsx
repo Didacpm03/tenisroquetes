@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 
 import imgUniversitaria from '../assets/png/universitaria.png';
 import imgEstudiantina from '../assets/png/estudiantina.png';
-import imgTuna from '../assets/png/latuna.png';
+import imgTuna from '../assets/png/austria1.jpg';
 import imgReunions from '../assets/png/reunions.png';
 import imgAustria from '../assets/png/arbresaustria.png';
 import imgVilanova from '../assets/png/arbresvilanova.png';
@@ -34,8 +34,8 @@ const Categories: React.FC = () => {
     },
     {
       id: 3,
-      name: 'La Tuna',
-      slug: 'tuna',
+      name: 'Austria',
+      slug: 'austria',
       image: imgTuna,
     },
     {
@@ -78,7 +78,7 @@ const Categories: React.FC = () => {
 
   const CategoryCard = ({ category }: { category: typeof categories[0] }) => (
     <Link
-      to={`/categoria/${category.slug}`}
+      to={`${category.slug}`}
       className="relative h-64 w-80 overflow-hidden rounded-xl mx-4 group"
     >
       <motion.img
