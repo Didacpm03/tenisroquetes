@@ -6,13 +6,13 @@ const Footer: React.FC = () => {
     <footer className="bg-gray-900 text-white py-10">
       <div className="max-w-4xl mx-auto px-4 text-center">
         <h2 className="text-2xl font-bold tracking-tighter mb-4">
-          PROMOCIÓ<span className="text-orange-500">1961</span>
+          TENIS<span className="text-orange-500">ROQUETES</span>
         </h2>
         <p className="text-gray-400 mb-6">
-          Web de la UPC de Vilanova i la Geltrú, sobre la Promoció ETPI 1961
+          Web de Tenis Roquetes
         </p>
         <p className="text-gray-600 text-sm mt-6">
-          &copy; {new Date().getFullYear()} Promoció 1961 – UPC Vilanova. Tots els drets reservats.
+          &copy; {new Date().getFullYear()} Tenis Roquetes - Tots els drets reservats.
         </p>
       </div>
     </footer>
