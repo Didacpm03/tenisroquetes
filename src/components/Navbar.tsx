@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
@@ -35,17 +36,18 @@ export default function Navbar() {
         animation: "navbarGradient 15s ease infinite",
       }}
     >
-      {/* Logo */}
       <Link
         to="/"
-        className="text-2xl font-extrabold hover:scale-105 transition-transform"
+        className="flex items-center gap-2 text-2xl font-extrabold hover:scale-105 transition-transform"
       >
-        Tenis Roquetes
+        <img src={Pelota} alt="Logo" className="w-10 h-10" />
+        Tennis Roquetes
       </Link>
 
       {/* Enlaces */}
       <div className="flex space-x-6 font-semibold text-lg items-center">
         <Link to="/" className="hover:text-yellow-200 transition">Inicio</Link>
+        <Link to="/manual" className="hover:text-yellow-200 transition">Manual</Link>
         <Link to="/reservar" className="hover:text-yellow-200 transition">Reservar</Link>
         <Link to="/mis-reservas" className="hover:text-yellow-200 transition">Mis Reservas</Link>
         <Link to="/clasificaciones" className="hover:text-yellow-200 transition">Clasificación</Link>
@@ -54,32 +56,44 @@ export default function Navbar() {
         <Link to="/super-admin" className="hover:text-yellow-200 transition">Admin</Link>
 
         {user ? (
-          <>
-            <span className="text-yellow-200">Hola, {user.nombre || user.username || user.email?.split('@')[0]}</span>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 px-4 py-1 rounded-lg text-white transition"
+          <div className="relative">
+            <button 
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="flex items-center gap-2 hover:text-yellow-200 transition"
             >
-              Cerrar sesión
+              <span className="text-yellow-200">Hola, {user.nombre || user.username || user.email?.split('@')[0]}</span>
+              <svg 
+                className={`w-4 h-4 transition-transform ${showDropdown ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24" 
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
-          </>
+
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                <Link
+                  to="/change-password"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-green-100 hover:text-green-700 transition"
+                  onClick={() => setShowDropdown(false)}
+                >
+                  Cambiar contraseña
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-100 hover:text-red-700 transition"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <Link to="/login" className="hover:text-yellow-200 transition">Login</Link>
         )}
-      </div>
-
-      {/* Pelota animada */}
-      <div
-        className="absolute top-1/2 transform -translate-y-1/2 w-10 h-10 pointer-events-none"
-        style={{
-          animation: "moveBall 10s ease-in-out infinite alternate",
-        }}
-      >
-        <img
-          src={Pelota}
-          alt="Pelota de tenis"
-          className="w-full h-full object-contain drop-shadow-xl"
-        />
       </div>
 
       {/* Animaciones globales */}
@@ -89,11 +103,6 @@ export default function Navbar() {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
-          }
-
-          @keyframes moveBall {
-            0% { transform: translateX(0) translateY(-50%); }
-            100% { transform: translateX(calc(100vw - 40px)) translateY(-50%); }
           }
         `}
       </style>

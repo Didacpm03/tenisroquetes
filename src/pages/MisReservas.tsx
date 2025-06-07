@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import Navbar from '../components/Navbar';
 import dayjs from 'dayjs';
+import ConfirmModal from '../components/ConfirmModal';  // Ajusta la ruta según donde esté el archivo
 
 interface Reserva {
   id: number;
@@ -13,6 +14,7 @@ interface Reserva {
   fecha: string;
   pista: number;
   creado_en: string;
+  tipo?: string; // Nuevo campo para identificar el tipo de pista
 }
 
 export default function MisReservas() {
@@ -22,6 +24,10 @@ export default function MisReservas() {
   const [success, setSuccess] = useState('');
   const [user, setUser] = useState<any>(null);
   const [cancelandoId, setCancelandoId] = useState<number | null>(null);
+
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [reservaToCancel, setReservaToCancel] = useState<{ id: number, tipo: string } | null>(null);
+
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -40,16 +46,35 @@ export default function MisReservas() {
     setLoading(true);
     setError('');
     try {
-      const { data, error } = await supabase
+      // Obtener reservas de tenis
+      const { data: tenisData, error: tenisError } = await supabase
         .from('reservas')
         .select('*')
         .or(`jugador1.eq.${user.username},jugador2.eq.${user.username}`)
         .order('fecha', { ascending: true })
         .order('hora', { ascending: true });
 
-      if (error) throw error;
+      if (tenisError) throw tenisError;
 
-      setReservas(data || []);
+      // Obtener reservas de pádel
+      const { data: padelData, error: padelError } = await supabase
+        .from('reservas_padel')
+        .select('*')
+        .or(`jugador1.eq.${user.username},jugador2.eq.${user.username}`)
+        .order('fecha', { ascending: true })
+        .order('hora', { ascending: true });
+
+      if (padelError) throw padelError;
+
+      // Combinar y marcar el tipo de reserva
+      const reservasTenis = (tenisData || []).map(r => ({ ...r, tipo: 'tenis' }));
+      const reservasPadel = (padelData || []).map(r => ({ ...r, tipo: 'padel' }));
+
+      setReservas([...reservasTenis, ...reservasPadel].sort((a, b) => {
+        const fechaA = dayjs(`${a.fecha} ${a.hora}`);
+        const fechaB = dayjs(`${b.fecha} ${b.hora}`);
+        return fechaA.diff(fechaB);
+      }));
     } catch (err) {
       setError('Error al cargar reservas: ' + (err instanceof Error ? err.message : 'Error desconocido'));
     } finally {
@@ -57,14 +82,15 @@ export default function MisReservas() {
     }
   }
 
-  async function cancelarReserva(id: number) {
+  async function cancelarReserva(id: number, tipo: string = 'tenis') {
     setCancelandoId(id);
     setError('');
     setSuccess('');
-    
+
     try {
+      const tableName = tipo === 'padel' ? 'reservas_padel' : 'reservas';
       const { error } = await supabase
-        .from('reservas')
+        .from(tableName)
         .delete()
         .eq('id', id);
 
@@ -79,12 +105,30 @@ export default function MisReservas() {
     }
   }
 
+  const handleCancelClick = (id: number, tipo: string = 'tenis') => {
+    setReservaToCancel({ id, tipo });
+    setShowConfirm(true);
+  };
+
+  const handleConfirmCancel = async () => {
+    if (reservaToCancel) {
+      await cancelarReserva(reservaToCancel.id, reservaToCancel.tipo);
+      setShowConfirm(false);
+      setReservaToCancel(null);
+    }
+  };
+
   function formatearFecha(fecha: string) {
     return dayjs(fecha).format('DD/MM/YYYY');
   }
 
   function formatearHora(hora: string) {
     return hora.substring(0, 5); // Quita los segundos si los hay
+  }
+
+  function getTipoPista(pista: number, tipo?: string) {
+    if (tipo === 'padel') return 'Pádel';
+    return pista <= 2 ? 'Tierra batida' : 'Pista rápida';
   }
 
   return (
@@ -124,8 +168,8 @@ export default function MisReservas() {
           ) : reservas.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-xl text-gray-500">No tienes reservas actualmente.</p>
-              <a 
-                href="/reservar" 
+              <a
+                href="/reservar"
                 className="mt-4 inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
               >
                 Haz una reserva ahora
@@ -136,7 +180,7 @@ export default function MisReservas() {
               {/* Lista de reservas */}
               <div className="divide-y divide-gray-200">
                 {reservas.map((reserva) => (
-                  <div key={reserva.id} className="p-6 hover:bg-gray-50 transition">
+                  <div key={`${reserva.tipo || 'tenis'}-${reserva.id}`} className="p-6 hover:bg-gray-50 transition">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       {/* Información de la reserva */}
                       <div className="flex-1">
@@ -145,18 +189,18 @@ export default function MisReservas() {
                             Pista {reserva.pista}
                           </span>
                           <span className="text-gray-500 text-sm">
-                            {reserva.pista <= 2 ? 'Tierra batida' : 'Pista rápida'}
+                            {getTipoPista(reserva.pista, reserva.tipo)}
                           </span>
                         </div>
-                        
+
                         <h3 className="text-xl font-semibold text-gray-800">
                           {formatearFecha(reserva.fecha)} a las {formatearHora(reserva.hora)}
                         </h3>
-                        
+
                         <p className="text-gray-600 mt-1">
                           Duración: {reserva.duracion} minutos
                         </p>
-                        
+
                         <div className="mt-3 flex flex-wrap gap-2">
                           <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">
                             {reserva.jugador1}
@@ -166,15 +210,11 @@ export default function MisReservas() {
                           </span>
                         </div>
                       </div>
-                      
+
                       {/* Acciones */}
                       <div className="flex flex-col sm:flex-row gap-2">
                         <button
-                          onClick={() => {
-                            if (window.confirm('¿Estás seguro de que quieres cancelar esta reserva?')) {
-                              cancelarReserva(reserva.id);
-                            }
-                          }}
+                          onClick={() => handleCancelClick(reserva.id, reserva.tipo)}
                           disabled={cancelandoId === reserva.id}
                           className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition flex items-center justify-center gap-2 disabled:opacity-50"
                         >
@@ -189,19 +229,28 @@ export default function MisReservas() {
                           ) : (
                             'Cancelar Reserva'
                           )}
+
+                          <ConfirmModal
+                            isOpen={showConfirm}
+                            title="Cancelar Reserva"
+                            message="¿Estás seguro de que quieres cancelar esta reserva?"
+                            onConfirm={handleConfirmCancel}
+                            onCancel={() => setShowConfirm(false)}
+                          />
                         </button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              
+
               {/* Pie de página */}
               <div className="bg-gray-50 px-6 py-4 text-center">
                 <p className="text-gray-500 text-sm">
                   Mostrando {reservas.length} reserva{reservas.length !== 1 ? 's' : ''}
                 </p>
               </div>
+
             </div>
           )}
         </div>

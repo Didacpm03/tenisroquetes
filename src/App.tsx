@@ -7,7 +7,9 @@ import Contacto from './pages/contacto';
 import Login from './pages/Login';
 import SuperAdmin from './pages/SuperAdmin';
 import Partidos from './pages/Partidos';
-
+import ChangePassword from './pages/ChangePassword';
+import Manual from './pages/Manual';
+import ConfirmModal from './components/ConfirmModal';
 
 function App() {
   return (
@@ -21,7 +23,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/super-admin" element={<SuperAdmin />} />
         <Route path="/partidos" element={<Partidos />} />
-
+        <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/manual" element={<Manual />} />
+        <Route path="/confirm-modal" element={<ConfirmModal />} />
 
 
       </Routes>

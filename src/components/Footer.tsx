@@ -9,10 +9,10 @@ const Footer: React.FC = () => {
           TENIS<span className="text-orange-500">ROQUETES</span>
         </h2>
         <p className="text-gray-400 mb-6">
-          Web de Tenis Roquetes
+          Web de Tennis Roquetes
         </p>
         <p className="text-gray-600 text-sm mt-6">
-          &copy; {new Date().getFullYear()} Tenis Roquetes - Tots els drets reservats.
+          &copy; {new Date().getFullYear()} Tennis Roquetes - Tots els drets reservats.
         </p>
       </div>
     </footer>

@@ -3,11 +3,15 @@ import dayjs from "dayjs";
 import "dayjs/locale/es";
 import { supabase } from "../../supabaseClient";
 import Navbar from "../components/Navbar";
+import Lluvia from '../assets/png/mojado.jpeg';
+import Vacaciones from '../assets/png/vacaciones.jpg';
+
 
 dayjs.locale("es");
 
 const pistasTierra = [1, 2];
 const pistasRapida = [3, 4];
+const pistasPadel = [5];
 
 function generarIntervalos(inicio: string, fin: string) {
   const resultado: string[] = [];
@@ -20,8 +24,9 @@ function generarIntervalos(inicio: string, fin: string) {
   return resultado;
 }
 
-const horariosEntreSemana = generarIntervalos("16:00", "21:00");
-const horariosFinSemana = generarIntervalos("09:00", "14:00");
+// Ajustar los horarios para permitir reservas de 1h30
+const horariosEntreSemana = generarIntervalos("9:00", "21:00"); // Última reserva a las 20:30 (termina a las 22:00)
+const horariosFinSemana = generarIntervalos("09:00", "13:00"); // Última reserva a las 12:30 (termina a las 14:00)
 
 type Reserva = {
   id: number;
@@ -36,7 +41,7 @@ type Reserva = {
 export default function Reservar() {
   const hoy = dayjs().startOf("day");
   const [diaSeleccionado, setDiaSeleccionado] = useState(hoy);
-  const [tipoPista, setTipoPista] = useState<"tierra" | "rapida">("tierra");
+  const [tipoPista, setTipoPista] = useState<"tierra" | "rapida" | "padel">("tierra");
   const [reservas, setReservas] = useState<Reserva[]>([]);
   const [horaSeleccionada, setHoraSeleccionada] = useState<string | null>(null);
   const [formVisible, setFormVisible] = useState(false);
@@ -47,6 +52,8 @@ export default function Reservar() {
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [advertencias, setAdvertencias] = useState<any[]>([]);
+  const [loadingAdvertencias, setLoadingAdvertencias] = useState(false);
 
   const proximosDias = Array(7).fill(0).map((_, i) => hoy.add(i, "day"));
 
@@ -59,11 +66,38 @@ export default function Reservar() {
     if (userStr) setUser(JSON.parse(userStr));
   }, []);
 
+  // Obtener advertencias para la fecha seleccionada
+  useEffect(() => {
+    const fetchAdvertencias = async () => {
+      setLoadingAdvertencias(true);
+      try {
+        const { data, error } = await supabase
+          .from('advertencias')
+          .select('*')
+          .eq('fecha', diaSeleccionado.format('YYYY-MM-DD'));
+
+        if (error) throw error;
+        
+        setAdvertencias(data || []);
+      } catch (err) {
+        console.error('Error al obtener advertencias:', err);
+      } finally {
+        setLoadingAdvertencias(false);
+      }
+    };
+
+    fetchAdvertencias();
+  }, [diaSeleccionado]);
+
   useEffect(() => {
     async function cargarReservas() {
       const fechaISO = diaSeleccionado.format("YYYY-MM-DD");
+
+      // Determinar la tabla según el tipo de pista
+      const tableName = tipoPista === "padel" ? "reservas_padel" : "reservas";
+
       const { data, error } = await supabase
-        .from("reservas")
+        .from(tableName)
         .select("*")
         .eq("fecha", fechaISO);
 
@@ -73,9 +107,9 @@ export default function Reservar() {
       }
 
       const reservasFiltradas = (data || []).filter(reserva =>
-        tipoPista === "tierra"
-          ? pistasTierra.includes(reserva.pista)
-          : pistasRapida.includes(reserva.pista)
+        tipoPista === "tierra" ? pistasTierra.includes(reserva.pista) :
+          tipoPista === "rapida" ? pistasRapida.includes(reserva.pista) :
+            pistasPadel.includes(reserva.pista)
       );
 
       setReservas(reservasFiltradas);
@@ -92,15 +126,19 @@ export default function Reservar() {
 
   function estaOcupada(hora: string, pista: number) {
     const [h, m] = hora.split(":").map(Number);
-    const inicio = h * 60 + m;
-    const finReserva = inicio + duracion;
+    const horaActual = h * 60 + m; // Convertir a minutos
 
-    return reservas.some((r) => {
-      if (r.pista !== pista) return false;
+    return reservas.some(r => {
+      if (r.pista !== pista || r.fecha !== diaSeleccionado.format("YYYY-MM-DD")) {
+        return false;
+      }
+
       const [rh, rm] = r.hora.split(":").map(Number);
-      const reservaInicio = rh * 60 + rm;
-      const reservaFin = reservaInicio + r.duracion;
-      return inicio < reservaFin && finReserva > reservaInicio;
+      const horaReserva = rh * 60 + rm; // Minutos de inicio de la reserva
+      const horaFinReserva = horaReserva + r.duracion; // Minutos de fin de la reserva
+
+      // Comprobar si la hora actual está dentro del intervalo de la reserva
+      return horaActual >= horaReserva && horaActual < horaFinReserva;
     });
   }
 
@@ -114,27 +152,50 @@ export default function Reservar() {
     return ahora.isAfter(horaReserva);
   }
 
+  function excedeHorario(hora: string): boolean {
+    const [h, m] = hora.split(":").map(Number);
+    const horaReserva = dayjs().hour(h).minute(m);
+    const horaFinReserva = horaReserva.add(duracion, 'minute');
+
+    if (diaSeleccionado.day() >= 1 && diaSeleccionado.day() <= 5) {
+      // Entre semana: cierre a las 22:00
+      const cierre = dayjs().hour(22).minute(0);
+      return horaFinReserva.isAfter(cierre);
+    } else {
+      // Fin de semana: cierre a las 14:00
+      const cierre = dayjs().hour(14).minute(0);
+      return horaFinReserva.isAfter(cierre);
+    }
+  }
+
   async function existeUsuario(username: string): Promise<boolean> {
     const { data, error } = await supabase
       .from("userstenis")
       .select("username")
-      .eq("username", username); // Usamos eq en lugar de ilike para comparación exacta
+      .eq("username", username);
 
     return !error && (data?.length ?? 0) > 0;
   }
 
-  async function maxReservasSemana(jugador: string, pista: number) {
-    if (!jugador || !pistasTierra.includes(pista)) return false;
+  async function maxReservasSemana(jugador: string) {
+    if (!jugador) return false;
+
     const semanaInicio = diaSeleccionado.startOf("week").format("YYYY-MM-DD");
     const semanaFin = diaSeleccionado.endOf("week").format("YYYY-MM-DD");
 
+    const tableName = tipoPista === "padel" ? "reservas_padel" : "reservas";
+    const pistasFiltro =
+      tipoPista === "tierra" ? pistasTierra :
+        tipoPista === "rapida" ? pistasRapida :
+          pistasPadel;
+
     const { data, error } = await supabase
-      .from("reservas")
+      .from(tableName)
       .select("*")
       .or(`jugador1.eq.${jugador},jugador2.eq.${jugador}`)
       .gte("fecha", semanaInicio)
       .lte("fecha", semanaFin)
-      .in("pista", pistasTierra);
+      .in("pista", pistasFiltro);
 
     if (error) {
       setMensaje("Error comprobando reservas semanales");
@@ -147,6 +208,11 @@ export default function Reservar() {
   async function reservar() {
     if (!horaSeleccionada || !pistaSeleccionada) {
       setMensaje("Debes seleccionar hora y pista");
+      return;
+    }
+
+    if (excedeHorario(horaSeleccionada)) {
+      setMensaje("La reserva excede el horario de cierre del club");
       return;
     }
 
@@ -178,17 +244,15 @@ export default function Reservar() {
       return;
     }
 
-    if (pistasTierra.includes(pistaSeleccionada)) {
-      if (await maxReservasSemana(jugador1, pistaSeleccionada)) {
-        setMensaje("Jugador 1 ha alcanzado el máximo de 2 reservas esta semana en pistas de tierra.");
-        setLoading(false);
-        return;
-      }
-      if (jugador2 && await maxReservasSemana(jugador2, pistaSeleccionada)) {
-        setMensaje("Jugador 2 ha alcanzado el máximo de 2 reservas esta semana en pistas de tierra.");
-        setLoading(false);
-        return;
-      }
+    if (await maxReservasSemana(jugador1)) {
+      setMensaje(`Jugador 1 ha alcanzado el máximo de 2 reservas esta semana en pistas de ${tipoPista}.`);
+      setLoading(false);
+      return;
+    }
+    if (jugador2 && await maxReservasSemana(jugador2)) {
+      setMensaje(`Jugador 2 ha alcanzado el máximo de 2 reservas esta semana en pistas de ${tipoPista}.`);
+      setLoading(false);
+      return;
     }
 
     const horaDB = `${horaSeleccionada}:00`;
@@ -202,7 +266,8 @@ export default function Reservar() {
       jugador2,
     };
 
-    const { error } = await supabase.from("reservas").insert(nuevaReserva);
+    const tableName = tipoPista === "padel" ? "reservas_padel" : "reservas";
+    const { error } = await supabase.from(tableName).insert(nuevaReserva);
 
     if (error) {
       setMensaje("Error al guardar reserva");
@@ -215,14 +280,14 @@ export default function Reservar() {
 
     const fechaISO = diaSeleccionado.format("YYYY-MM-DD");
     const { data } = await supabase
-      .from("reservas")
+      .from(tableName)
       .select("*")
       .eq("fecha", fechaISO);
 
     const reservasFiltradas = (data || []).filter(reserva =>
-      tipoPista === "tierra"
-        ? pistasTierra.includes(reserva.pista)
-        : pistasRapida.includes(reserva.pista)
+      tipoPista === "tierra" ? pistasTierra.includes(reserva.pista) :
+        tipoPista === "rapida" ? pistasRapida.includes(reserva.pista) :
+          pistasPadel.includes(reserva.pista)
     );
 
     setReservas(reservasFiltradas);
@@ -238,16 +303,23 @@ export default function Reservar() {
     return dia.isBefore(hoy.add(8, "day"), "day");
   }
 
-  const pistasDisponibles = tipoPista === "tierra" ? pistasTierra : pistasRapida;
+  const pistasDisponibles =
+    tipoPista === "tierra" ? pistasTierra :
+      tipoPista === "rapida" ? pistasRapida :
+        pistasPadel;
 
-  return (
+  // Verificar si hay advertencia para la fecha actual
+  const tieneAdvertencia = advertencias.length > 0;
+  const motivoAdvertencia = tieneAdvertencia ? advertencias[0].motivo : null;
+
+   return (
     <>
       <Navbar />
       <main className="min-h-screen bg-gradient-to-b from-green-50 to-white p-6 pt-24">
         {/* Título */}
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl font-bold text-center mb-6 text-green-800">
-            Reserva tu pista de tenis
+            Reserva tu pista {tipoPista === "padel" ? "de pádel" : "de tennis"}
           </h1>
           {user && (
             <p className="text-center text-lg text-green-600 mb-10">
@@ -275,10 +347,19 @@ export default function Reservar() {
             >
               Pista Rápida (Quick)
             </button>
+            <button
+              onClick={() => setTipoPista("padel")}
+              className={`px-8 py-3 rounded-xl font-semibold text-lg transition-all duration-300 ${tipoPista === "padel"
+                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg"
+                  : "bg-white text-black hover:bg-gray-100 border-2 border-gray-300"
+                }`}
+            >
+              Pádel
+            </button>
           </div>
 
           {/* Selector de día */}
-          <div className="flex justify-center gap-4 mb-12 overflow-x-auto pb-4">
+          <div className="flex justify-center gap-4 mb-6 overflow-x-auto pb-4">
             {proximosDias.map((dia) => {
               const esSeleccionado = dia.isSame(diaSeleccionado, "day");
               const valido = diaValido(dia);
@@ -302,72 +383,110 @@ export default function Reservar() {
             })}
           </div>
 
-          {/* Horarios */}
-          <div className="grid gap-4">
-            {horarios.map((hora) => (
-              <div key={hora} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="flex items-center">
-                  <div className="w-24 flex-shrink-0 p-4 bg-green-50 text-center">
-                    <span className="text-lg font-bold text-green-800">{hora}</span>
-                  </div>
+          {/* Mostrar advertencia si existe */}
+          {loadingAdvertencias ? (
+            <div className="flex justify-center items-center h-32 mb-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-4 border-b-4 border-green-600"></div>
+            </div>
+          ) : tieneAdvertencia ? (
+            <div className="relative rounded-xl overflow-hidden shadow-lg mb-10">
+              <img 
+                src={motivoAdvertencia === 'vacaciones' ? Vacaciones : Lluvia} 
+                alt={motivoAdvertencia === 'vacaciones' ? "Club cerrado por vacaciones" : "Pista mojada"} 
+                className="w-full h-96 object-cover opacity-70"
+              />
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <div className="text-center p-6">
+                  <h2 className="text-3xl font-bold text-white mb-2">Reservas Canceladas</h2>
+                  <p className="text-xl text-white mb-4">Motivo: {motivoAdvertencia}</p>
+                  <p className="text-white">
+                    {motivoAdvertencia === 'vacaciones' 
+                      ? `El club estará cerrado el día ${diaSeleccionado.format('dddd, D [de] MMMM')} por vacaciones.`
+                      : `Las reservas para el día ${diaSeleccionado.format('dddd, D [de] MMMM')} han sido canceladas debido a ${motivoAdvertencia}.`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {horarios.map((hora) => (
+                <div key={hora} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="flex items-center">
+                    <div className="w-24 flex-shrink-0 p-4 bg-green-50 text-center">
+                      <span className="text-lg font-bold text-green-800">{hora}</span>
+                    </div>
 
-                  <div className="flex-1 grid grid-cols-2 gap-4 p-4">
-                    {pistasDisponibles.map((p) => {
-                      const ocupada = estaOcupada(hora, p);
-                      const seleccionada = hora === horaSeleccionada && p === pistaSeleccionada;
-                      const pasada = horaPasada(hora);
-                      const reserva = reservas.find(r =>
-                        r.pista === p &&
-                        r.hora.startsWith(hora) &&
-                        r.fecha === diaSeleccionado.format("YYYY-MM-DD")
-                      );
+                    <div className="flex-1 grid grid-cols-2 gap-4 p-4">
+                      {pistasDisponibles.map((p) => {
+                        const ocupada = estaOcupada(hora, p);
+                        const seleccionada = hora === horaSeleccionada && p === pistaSeleccionada;
+                        const pasada = horaPasada(hora);
+                        const fueraHorario = excedeHorario(hora);
+                        const reserva = reservas.find(r =>
+                          r.pista === p &&
+                          r.hora.startsWith(hora) &&
+                          r.fecha === diaSeleccionado.format("YYYY-MM-DD")
+                        );
 
-                      return (
-                        <div key={p} className="relative">
-                          <button
-                            disabled={ocupada || pasada}
-                            onClick={() => {
-                              if (!pasada && !ocupada) {
-                                setHoraSeleccionada(hora);
-                                setPistaSeleccionada(p);
-                                setFormVisible(true);
-                              }
-                            }}
-                            className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-between ${ocupada
-                              ? "bg-red-50 text-red-800 border border-red-200 cursor-not-allowed"
-                              : pasada
-                                ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                                : seleccionada
-                                  ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md"
-                                  : "bg-green-50 text-green-800 hover:bg-green-100 border border-green-200"
-                              }`}
-                          >
-                            <span>Pista {p}</span>
-                            <span className="text-sm font-normal">
-                              {ocupada ? "Pista Reservada" : pasada ? "No disponible" : "Disponible"}
-                            </span>
-                          </button>
+                        return (
+                          <div key={p} className="relative">
+                            <button
+                              disabled={ocupada || pasada || fueraHorario || tieneAdvertencia}
+                              onClick={() => {
+                                if (!pasada && !ocupada && !fueraHorario && !tieneAdvertencia) {
+                                  setHoraSeleccionada(hora);
+                                  setPistaSeleccionada(p);
+                                  setFormVisible(true);
+                                }
+                              }}
+                              className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-between ${ocupada
+                                ? "bg-red-50 text-red-800 border border-red-200 cursor-not-allowed"
+                                : pasada
+                                  ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                                  : fueraHorario
+                                    ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    : tieneAdvertencia
+                                      ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                                      : seleccionada
+                                        ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md"
+                                        : "bg-green-50 text-green-800 hover:bg-green-100 border border-green-200"
+                                }`}
+                            >
+                              <span>Pista {p}</span>
+                              <span className="text-sm font-normal">
+                                {ocupada
+                                  ? "Pista Reservada"
+                                  : pasada
+                                    ? "No disponible"
+                                    : fueraHorario
+                                      ? "Fuera de horario"
+                                      : tieneAdvertencia
+                                        ? "Cancelado"
+                                        : "Disponible"}
+                              </span>
+                            </button>
 
-                          {ocupada && reserva && (
-                            <div className="mt-2 text-xs text-gray-600">
-                              <div className="flex justify-between">
-
-                              </div>
-                              {reserva.jugador2 && (
+                            {ocupada && reserva && (
+                              <div className="mt-2 text-xs text-gray-600">
                                 <div className="flex justify-between">
 
                                 </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                                {reserva.jugador2 && (
+                                  <div className="flex justify-between">
+
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Formulario de reserva */}
