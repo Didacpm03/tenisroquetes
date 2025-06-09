@@ -12,6 +12,8 @@ interface Reserva {
   fecha: string;
   pista: number;
   creado_en: string;
+  estado_pago?: string;
+  tipo?: string; // Para distinguir entre tenis y pádel
 }
 
 interface Usuario {
@@ -93,7 +95,7 @@ export default function SuperAdmin() {
   // Estado para nueva advertencia
   const [nuevaAdvertencia, setNuevaAdvertencia] = useState<Advertencia>({
     fecha: dayjs().format('YYYY-MM-DD'),
-    motivo: 'lluvia'
+    motivo: 'Fenómenos meteorológicos'
   });
 
   const [showConfirmReserva, setShowConfirmReserva] = useState(false);
@@ -227,10 +229,29 @@ export default function SuperAdmin() {
       setSuccess('Advertencia añadida correctamente');
       setNuevaAdvertencia({
         fecha: dayjs().format('YYYY-MM-DD'),
-        motivo: 'lluvia'
+        motivo: 'Fenómenos meteorológicos'
       });
     } catch (err) {
       setError('Error al añadir advertencia: ' + (err instanceof Error ? err.message : 'Error desconocido'));
+    }
+  };
+
+  const handleUpdatePaymentStatus = async (reserva: Reserva, newStatus: string) => {
+    try {
+      const tableName = reserva.tipo === 'padel' ? 'reservas_padel' : 'reservas';
+      const { error } = await supabase
+        .from(tableName)
+        .update({ estado_pago: newStatus })
+        .eq('id', reserva.id);
+
+      if (error) throw error;
+
+      setReservas(prev => prev.map(r => 
+        r.id === reserva.id ? { ...r, estado_pago: newStatus } : r
+      ));
+      setSuccess('Estado de pago actualizado');
+    } catch (err) {
+      setError('Error al actualizar estado de pago');
     }
   };
 
@@ -376,6 +397,7 @@ export default function SuperAdmin() {
                       <th className="px-8 py-4 font-bold text-left">Pista</th>
                       <th className="px-8 py-4 font-bold text-left">Jugadores</th>
                       <th className="px-8 py-4 font-bold text-left">Duración</th>
+                      <th className="px-8 py-4 font-bold text-left">Estado Pago</th>
                       <th className="px-8 py-4 font-bold text-left">Acciones</th>
                     </tr>
                   </thead>
@@ -405,10 +427,27 @@ export default function SuperAdmin() {
                         </td>
                         <td className="px-8 py-5 whitespace-nowrap">{reserva.duracion} min</td>
                         <td className="px-8 py-5 whitespace-nowrap">
+                          <div className="relative inline-block w-24">
+                            <select
+                              value={reserva.estado_pago || 'pendiente'}
+                              onChange={(e) => handleUpdatePaymentStatus(reserva, e.target.value)}
+                              className="block appearance-none w-full bg-gray-700 border border-gray-600 text-white py-2 px-3 pr-8 rounded-lg leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                            >
+                              <option value="pendiente" className="bg-gray-800">Pendiente</option>
+                              <option value="pagado" className="bg-gray-800">Pagado</option>
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                              </svg>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-8 py-5 whitespace-nowrap">
                           <button
                             onClick={() => handleDeleteClick(reserva.id, 'reserva')}
                             disabled={deletingReservaId === reserva.id}
-                            className="inline-flex items-center px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md font-semibold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg font-semibold shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {deletingReservaId === reserva.id ? (
                               <>
@@ -419,7 +458,12 @@ export default function SuperAdmin() {
                                 Eliminando...
                               </>
                             ) : (
-                              'Eliminar'
+                              <>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Eliminar
+                              </>
                             )}
                           </button>
                         </td>
@@ -470,7 +514,7 @@ export default function SuperAdmin() {
                           <button
                             onClick={() => handleDeleteClick(usuario.id, 'usuario')}
                             disabled={deletingUsuarioId === usuario.id}
-                            className="inline-flex items-center px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md font-semibold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg font-semibold shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {deletingUsuarioId === usuario.id ? (
                               <>
@@ -481,7 +525,12 @@ export default function SuperAdmin() {
                                 Eliminando...
                               </>
                             ) : (
-                              'Eliminar'
+                              <>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Eliminar
+                              </>
                             )}
                           </button>
                         </td>
@@ -511,7 +560,7 @@ export default function SuperAdmin() {
                     type="date"
                     value={nuevaAdvertencia.fecha}
                     onChange={(e) => setNuevaAdvertencia({...nuevaAdvertencia, fecha: e.target.value})}
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                   />
                 </div>
                 <div>
@@ -519,18 +568,20 @@ export default function SuperAdmin() {
                   <select
                     value={nuevaAdvertencia.motivo}
                     onChange={(e) => setNuevaAdvertencia({...nuevaAdvertencia, motivo: e.target.value})}
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                   >
-                    <option value="lluvia">Lluvia</option>
-                    <option value="fiesta">Vacaciones/fiesta</option>
-                    <option value="viento">Viento fuerte</option>
+                    <option value="Fenómenos meteorológicos">Fenómenos meteorológicos</option>
+                    <option value="Vacaciones/fiesta">Vacaciones/fiesta</option>
                   </select>
                 </div>
                 <div className="flex items-end">
                   <button
                     onClick={handleAddAdvertencia}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition w-full"
+                    className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 transform hover:scale-105 w-full flex items-center justify-center"
                   >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
                     Añadir Advertencia
                   </button>
                 </div>
@@ -569,7 +620,7 @@ export default function SuperAdmin() {
                           <button
                             onClick={() => handleDeleteClick(advertencia.id!, 'advertencia')}
                             disabled={deletingAdvertenciaId === advertencia.id}
-                            className="inline-flex items-center px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md font-semibold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg font-semibold shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {deletingAdvertenciaId === advertencia.id ? (
                               <>
@@ -580,7 +631,12 @@ export default function SuperAdmin() {
                                 Eliminando...
                               </>
                             ) : (
-                              'Eliminar'
+                              <>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Eliminar
+                              </>
                             )}
                           </button>
                         </td>

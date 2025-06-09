@@ -21,10 +21,16 @@ interface Partido {
   creado_en: string;
 }
 
+interface Amigo {
+  id: number;
+  amigo_username: string;
+}
+
 export default function Partidos() {
   const [user, setUser] = useState<any>(null);
   const [jugador2, setJugador2] = useState('');
   const [partidos, setPartidos] = useState<Partido[]>([]);
+  const [partidosAmigos, setPartidosAmigos] = useState<{amigo: string, partidos: Partido[]}[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -40,6 +46,8 @@ export default function Partidos() {
   ]);
   const [setsJugador1, setSetsJugador1] = useState(0);
   const [setsJugador2, setSetsJugador2] = useState(0);
+  const [amigos, setAmigos] = useState<Amigo[]>([]);
+  const [showAmigosDropdown, setShowAmigosDropdown] = useState(false);
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -52,6 +60,7 @@ export default function Partidos() {
     const user = JSON.parse(userStr);
     setUser(user);
     fetchPartidos(user);
+    fetchAmigos(user);
   }, []);
 
   async function fetchPartidos(user: any) {
@@ -67,10 +76,49 @@ export default function Partidos() {
       if (error) throw error;
 
       setPartidos(data || []);
+      fetchPartidosAmigos(data || [], user.username);
     } catch (err) {
       setError('Error al cargar partidos: ' + (err instanceof Error ? err.message : 'Error desconocido'));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchAmigos(user: any) {
+    try {
+      const { data, error } = await supabase
+        .from('amigos')
+        .select('id, amigo_username')
+        .eq('usuario_id', user.id);
+
+      if (error) throw error;
+
+      setAmigos(data || []);
+    } catch (err) {
+      console.error('Error al cargar amigos:', err);
+    }
+  }
+
+  async function fetchPartidosAmigos(partidos: Partido[], username: string) {
+    try {
+      // Obtener nombres de amigos únicos
+      const amigosPartidos = partidos
+        .filter(p => p.jugador1 !== username && p.jugador2 !== username)
+        .map(p => p.jugador1 === username ? p.jugador2 : p.jugador1)
+        .filter((value, index, self) => self.indexOf(value) === index);
+
+      // Agrupar partidos por amigo
+      const partidosPorAmigo = amigosPartidos.map(amigo => ({
+        amigo,
+        partidos: partidos.filter(p => 
+          (p.jugador1 === username && p.jugador2 === amigo) || 
+          (p.jugador2 === username && p.jugador1 === amigo)
+        )
+      }));
+
+      setPartidosAmigos(partidosPorAmigo);
+    } catch (err) {
+      console.error('Error al agrupar partidos por amigo:', err);
     }
   }
 
@@ -119,7 +167,14 @@ export default function Partidos() {
   async function guardarPartido() {
     if (!user) return;
     if (!jugador2) {
-      setError('Debes ingresar el nombre del oponente');
+      setError('Debes seleccionar un oponente de tu lista de amigos');
+      return;
+    }
+
+    // Verificar que el jugador2 es un amigo
+    const esAmigo = amigos.some(a => a.amigo_username === jugador2);
+    if (!esAmigo) {
+      setError('Solo puedes registrar partidos contra amigos');
       return;
     }
 
@@ -238,15 +293,36 @@ export default function Partidos() {
                 </div>
               </div>
 
-              <div>
+              <div className="relative">
                 <label className="block text-gray-300 mb-2">Jugador 2 (Oponente)</label>
                 <input
                   type="text"
                   value={jugador2}
                   onChange={(e) => setJugador2(e.target.value)}
+                  onFocus={() => setShowAmigosDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowAmigosDropdown(false), 200)}
                   className="w-full bg-gray-700 text-white p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  placeholder="Nombre de usuario"
+                  placeholder="Selecciona un amigo"
                 />
+                {showAmigosDropdown && amigos.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full bg-gray-700 border border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
+                    {amigos.map((amigo) => (
+                      <div
+                        key={amigo.id}
+                        className="px-4 py-3 hover:bg-gray-600 cursor-pointer flex items-center gap-3"
+                        onClick={() => {
+                          setJugador2(amigo.amigo_username);
+                          setShowAmigosDropdown(false);
+                        }}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-300">
+                          {amigo.amigo_username.charAt(0).toUpperCase()}
+                        </div>
+                        <span>{amigo.amigo_username}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -264,7 +340,13 @@ export default function Partidos() {
                 <div className="text-center">
                   <div className="text-sm text-gray-400 mb-1">RESULTADO</div>
                   <div className="text-xl font-bold text-white">
-                    {setsJugador1 > setsJugador2 ? 'Ganaste' : setsJugador2 > setsJugador1 ? 'Perdiste' : 'Empate'}
+                    {setsJugador1 > setsJugador2 ? (
+                      <span className="text-green-400">VICTORIA</span>
+                    ) : setsJugador2 > setsJugador1 ? (
+                      <span className="text-red-400">DERROTA</span>
+                    ) : (
+                      <span className="text-yellow-400">EMPATE</span>
+                    )}
                   </div>
                 </div>
                 <div className="text-center">
@@ -273,40 +355,79 @@ export default function Partidos() {
                 </div>
               </div>
 
-              {/* Detalle por sets */}
+              {/* Detalle por sets - Diseño mejorado */}
               <div className="space-y-4">
                 {games.map((game) => (
                   <div key={game.set} className="bg-gray-800 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-400">Set {game.set}</span>
-                      {game.games_jugador1 > game.games_jugador2 ? (
-                        <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-1 rounded">Ganado</span>
-                      ) : game.games_jugador2 > game.games_jugador1 ? (
-                        <span className="text-xs bg-purple-900/50 text-purple-300 px-2 py-1 rounded">Perdido</span>
-                      ) : (
-                        <span className="text-xs bg-gray-700 text-gray-400 px-2 py-1 rounded">Empate</span>
-                      )}
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-gray-400 font-medium">Set {game.set}</span>
+                      <div className={`text-xs px-2 py-1 rounded-full ${
+                        game.games_jugador1 > game.games_jugador2 ? 
+                          'bg-blue-900/50 text-blue-300' : 
+                          game.games_jugador2 > game.games_jugador1 ? 
+                          'bg-purple-900/50 text-purple-300' : 
+                          'bg-gray-700 text-gray-400'
+                      }`}>
+                        {game.games_jugador1 > game.games_jugador2 ? 'Ganado' : 
+                         game.games_jugador2 > game.games_jugador1 ? 'Perdido' : 'Empate'}
+                      </div>
                     </div>
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">Games Jugador 1</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={game.games_jugador1}
-                          onChange={(e) => handleGameChange(game.set, 'games_jugador1', parseInt(e.target.value) || 0)}
-                          className="w-full bg-gray-700 text-white p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        />
+                        <label className="block text-xs text-gray-400 mb-1">Tus Games</label>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleGameChange(game.set, 'games_jugador1', game.games_jugador1 - 1)}
+                            disabled={game.games_jugador1 <= 0}
+                            className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-600 disabled:opacity-30"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                            </svg>
+                          </button>
+                          
+                          <div className="flex-1 bg-gray-700 text-white text-center py-1 px-3 rounded-lg font-medium">
+                            {game.games_jugador1}
+                          </div>
+                          
+                          <button
+                            onClick={() => handleGameChange(game.set, 'games_jugador1', game.games_jugador1 + 1)}
+                            className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-600"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
+                      
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">Games Jugador 2</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={game.games_jugador2}
-                          onChange={(e) => handleGameChange(game.set, 'games_jugador2', parseInt(e.target.value) || 0)}
-                          className="w-full bg-gray-700 text-white p-2 rounded focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                        />
+                        <label className="block text-xs text-gray-400 mb-1">Games Oponente</label>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleGameChange(game.set, 'games_jugador2', game.games_jugador2 - 1)}
+                            disabled={game.games_jugador2 <= 0}
+                            className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-600 disabled:opacity-30"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                            </svg>
+                          </button>
+                          
+                          <div className="flex-1 bg-gray-700 text-white text-center py-1 px-3 rounded-lg font-medium">
+                            {game.games_jugador2}
+                          </div>
+                          
+                          <button
+                            onClick={() => handleGameChange(game.set, 'games_jugador2', game.games_jugador2 + 1)}
+                            className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-600"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -344,8 +465,8 @@ export default function Partidos() {
             </div>
           </div>
 
-          {/* Lista de partidos */}
-          <div>
+          {/* Lista de mis partidos */}
+          <div className="mb-16">
             <h2 className="text-2xl font-bold text-white mb-6">Mis Partidos</h2>
             
             {loading ? (
@@ -426,6 +547,72 @@ export default function Partidos() {
               </div>
             )}
           </div>
+
+          {/* Partidos de mis amigos */}
+          {partidosAmigos.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-6">Partidos de Mis Amigos</h2>
+              
+              <div className="space-y-8">
+                {partidosAmigos.map(({amigo, partidos}) => (
+                  <div key={amigo} className="bg-gray-800/30 rounded-xl p-6 border border-gray-700">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-300 text-lg font-bold">
+                        {amigo.charAt(0).toUpperCase()}
+                      </div>
+                      <h3 className="text-xl font-semibold text-white">Partidos de {amigo}</h3>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {partidos.map((partido) => {
+                        const esJugador1 = partido.jugador1 === amigo;
+                        const oponente = esJugador1 ? partido.jugador2 : partido.jugador1;
+                        const setsGanados = esJugador1 ? partido.sets_jugador1 : partido.sets_jugador2;
+                        const setsPerdidos = esJugador1 ? partido.sets_jugador2 : partido.sets_jugador1;
+                        const resultado = setsGanados > setsPerdidos ? 'victoria' : setsPerdidos > setsGanados ? 'derrota' : 'empate';
+
+                        return (
+                          <div key={partido.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                            <div className="grid md:grid-cols-3 gap-4">
+                              <div className="flex items-center space-x-3">
+                                <div className={`w-2 h-2 rounded-full ${resultado === 'victoria' ? 'bg-green-500' : resultado === 'derrota' ? 'bg-red-500' : 'bg-yellow-500'}`}></div>
+                                <div>
+                                  <div className="text-sm text-gray-400">vs {oponente}</div>
+                                  <div className="text-white">{formatearFecha(partido.fecha)}</div>
+                                </div>
+                              </div>
+                              
+                              <div className="flex justify-center items-center space-x-4">
+                                <div className="text-center">
+                                  <div className="text-xl font-bold text-blue-400">{setsGanados}</div>
+                                  <div className="text-xs text-gray-400">sets</div>
+                                </div>
+                                <div className="text-gray-500">-</div>
+                                <div className="text-center">
+                                  <div className="text-xl font-bold text-purple-400">{setsPerdidos}</div>
+                                  <div className="text-xs text-gray-400">sets</div>
+                                </div>
+                              </div>
+                              
+                              <div className="text-right">
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                  resultado === 'victoria' ? 'bg-green-900/50 text-green-300' :
+                                  resultado === 'derrota' ? 'bg-red-900/50 text-red-300' :
+                                  'bg-yellow-900/50 text-yellow-300'
+                                }`}>
+                                  {resultado === 'victoria' ? 'Victoria' : resultado === 'derrota' ? 'Derrota' : 'Empate'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

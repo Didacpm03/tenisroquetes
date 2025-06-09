@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import Navbar from '../components/Navbar';
 import dayjs from 'dayjs';
-import ConfirmModal from '../components/ConfirmModal';  // Ajusta la ruta según donde esté el archivo
+import ConfirmModal from '../components/ConfirmModal';
 
 interface Reserva {
   id: number;
@@ -14,7 +14,8 @@ interface Reserva {
   fecha: string;
   pista: number;
   creado_en: string;
-  tipo?: string; // Nuevo campo para identificar el tipo de pista
+  tipo?: string;
+  estado_pago?: string;
 }
 
 export default function MisReservas() {
@@ -24,10 +25,8 @@ export default function MisReservas() {
   const [success, setSuccess] = useState('');
   const [user, setUser] = useState<any>(null);
   const [cancelandoId, setCancelandoId] = useState<number | null>(null);
-
   const [showConfirm, setShowConfirm] = useState(false);
   const [reservaToCancel, setReservaToCancel] = useState<{ id: number, tipo: string } | null>(null);
-
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -123,12 +122,25 @@ export default function MisReservas() {
   }
 
   function formatearHora(hora: string) {
-    return hora.substring(0, 5); // Quita los segundos si los hay
+    return hora.substring(0, 5);
   }
 
   function getTipoPista(pista: number, tipo?: string) {
     if (tipo === 'padel') return 'Pádel';
     return pista <= 2 ? 'Tierra batida' : 'Pista rápida';
+  }
+
+  function getEstadoPagoBadge(estado: string = 'pendiente') {
+    const styles = {
+      pendiente: 'bg-yellow-100 text-yellow-800',
+      pagado: 'bg-green-100 text-green-800'
+    };
+    
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[estado as keyof typeof styles]}`}>
+        {estado === 'pendiente' ? 'Pago pendiente' : 'Pagado'}
+      </span>
+    );
   }
 
   return (
@@ -185,12 +197,14 @@ export default function MisReservas() {
                       {/* Información de la reserva */}
                       <div className="flex-1">
                         <div className="flex items-center gap-4 mb-2">
+                          
                           <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
                             Pista {reserva.pista}
                           </span>
                           <span className="text-gray-500 text-sm">
                             {getTipoPista(reserva.pista, reserva.tipo)}
                           </span>
+                          {getEstadoPagoBadge(reserva.estado_pago)}
                         </div>
 
                         <h3 className="text-xl font-semibold text-gray-800">
@@ -205,9 +219,11 @@ export default function MisReservas() {
                           <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">
                             {reserva.jugador1}
                           </span>
-                          <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
-                            {reserva.jugador2}
-                          </span>
+                          {reserva.jugador2 && (
+                            <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
+                              {reserva.jugador2}
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -229,14 +245,6 @@ export default function MisReservas() {
                           ) : (
                             'Cancelar Reserva'
                           )}
-
-                          <ConfirmModal
-                            isOpen={showConfirm}
-                            title="Cancelar Reserva"
-                            message="¿Estás seguro de que quieres cancelar esta reserva?"
-                            onConfirm={handleConfirmCancel}
-                            onCancel={() => setShowConfirm(false)}
-                          />
                         </button>
                       </div>
                     </div>
@@ -250,11 +258,18 @@ export default function MisReservas() {
                   Mostrando {reservas.length} reserva{reservas.length !== 1 ? 's' : ''}
                 </p>
               </div>
-
             </div>
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showConfirm}
+        title="Cancelar Reserva"
+        message="¿Estás seguro de que quieres cancelar esta reserva?"
+        onConfirm={handleConfirmCancel}
+        onCancel={() => setShowConfirm(false)}
+      />
     </>
   );
 }

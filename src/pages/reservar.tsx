@@ -5,6 +5,8 @@ import { supabase } from "../../supabaseClient";
 import Navbar from "../components/Navbar";
 import Lluvia from '../assets/png/mojado.jpeg';
 import Vacaciones from '../assets/png/vacaciones.jpg';
+import { sendReservationReminder } from './emailService';
+
 
 
 dayjs.locale("es");
@@ -38,6 +40,11 @@ type Reserva = {
   jugador2: string;
 };
 
+interface Amigo {
+  id: string;
+  username: string;
+}
+
 export default function Reservar() {
   const hoy = dayjs().startOf("day");
   const [diaSeleccionado, setDiaSeleccionado] = useState(hoy);
@@ -54,6 +61,9 @@ export default function Reservar() {
   const [user, setUser] = useState<any>(null);
   const [advertencias, setAdvertencias] = useState<any[]>([]);
   const [loadingAdvertencias, setLoadingAdvertencias] = useState(false);
+  const [amigos, setAmigos] = useState<Amigo[]>([]);
+  const [loadingAmigos, setLoadingAmigos] = useState(false);
+  const [showAmigosDropdown, setShowAmigosDropdown] = useState(false);
 
   const proximosDias = Array(7).fill(0).map((_, i) => hoy.add(i, "day"));
 
@@ -77,7 +87,7 @@ export default function Reservar() {
           .eq('fecha', diaSeleccionado.format('YYYY-MM-DD'));
 
         if (error) throw error;
-        
+
         setAdvertencias(data || []);
       } catch (err) {
         console.error('Error al obtener advertencias:', err);
@@ -88,6 +98,42 @@ export default function Reservar() {
 
     fetchAdvertencias();
   }, [diaSeleccionado]);
+
+  useEffect(() => {
+    const fetchAmigos = async () => {
+      if (!user) return;
+
+      setLoadingAmigos(true);
+      try {
+        // Consulta similar a la de Amigos.tsx
+        const { data: amigosData, error } = await supabase
+          .from('amigos')
+          .select(`
+          id,
+          estado,
+          amigo:amigo_id(id, username)
+        `)
+          .eq('usuario_id', user.id)
+          .eq('estado', 'aceptado');
+
+        if (error) throw error;
+
+        // Formatear los datos como en Amigos.tsx
+        const amigosFormateados = (amigosData || []).map((relacion: any) => ({
+          id: relacion.amigo.id,
+          username: relacion.amigo.username
+        }));
+
+        setAmigos(amigosFormateados);
+      } catch (err) {
+        console.error('Error al cargar amigos:', err);
+      } finally {
+        setLoadingAmigos(false);
+      }
+    };
+
+    fetchAmigos();
+  }, [user]);
 
   useEffect(() => {
     async function cargarReservas() {
@@ -264,6 +310,7 @@ export default function Reservar() {
       pista: pistaSeleccionada,
       jugador1,
       jugador2,
+      estado_pago: 'pendiente' // Añadir este campo
     };
 
     const tableName = tipoPista === "padel" ? "reservas_padel" : "reservas";
@@ -273,6 +320,17 @@ export default function Reservar() {
       setMensaje("Error al guardar reserva");
       setLoading(false);
       return;
+    }
+
+    // Enviar notificación de reserva
+    try {
+      await sendReservationReminder({
+        ...nuevaReserva,
+        user_id: user.id,
+        tipo: tipoPista,
+      });
+    } catch (err) {
+      console.error('Error enviando notificación:', err);
     }
 
     setMensaje("Reserva realizada con éxito!");
@@ -312,7 +370,7 @@ export default function Reservar() {
   const tieneAdvertencia = advertencias.length > 0;
   const motivoAdvertencia = tieneAdvertencia ? advertencias[0].motivo : null;
 
-   return (
+  return (
     <>
       <Navbar />
       <main className="min-h-screen bg-gradient-to-b from-green-50 to-white p-6 pt-24">
@@ -350,8 +408,8 @@ export default function Reservar() {
             <button
               onClick={() => setTipoPista("padel")}
               className={`px-8 py-3 rounded-xl font-semibold text-lg transition-all duration-300 ${tipoPista === "padel"
-                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg"
-                  : "bg-white text-black hover:bg-gray-100 border-2 border-gray-300"
+                ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg"
+                : "bg-white text-black hover:bg-gray-100 border-2 border-gray-300"
                 }`}
             >
               Pádel
@@ -390,17 +448,27 @@ export default function Reservar() {
             </div>
           ) : tieneAdvertencia ? (
             <div className="relative rounded-xl overflow-hidden shadow-lg mb-10">
-              <img 
-                src={motivoAdvertencia === 'vacaciones' ? Vacaciones : Lluvia} 
-                alt={motivoAdvertencia === 'vacaciones' ? "Club cerrado por vacaciones" : "Pista mojada"} 
-                className="w-full h-96 object-cover opacity-70"
+              <img
+                src={motivoAdvertencia === 'vacaciones' ? Vacaciones : Lluvia}
+                alt={motivoAdvertencia === 'vacaciones' ? "Club cerrado por vacaciones" : "Pista mojada"}
+                className="w-full h-[550px] object-cover opacity-70"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <div className="text-center p-6">
-                  <h2 className="text-3xl font-bold text-white mb-2">Reservas Canceladas</h2>
-                  <p className="text-xl text-white mb-4">Motivo: {motivoAdvertencia}</p>
-                  <p className="text-white">
-                    {motivoAdvertencia === 'vacaciones' 
+              <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                <div className="bg-red-600 bg-opacity-90 rounded-2xl shadow-lg p-8 max-w-md text-white text-center border-4 border-red-300 animate-fade-in">
+
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-white rounded-full p-3 shadow-md">
+                      <svg className="w-10 h-10 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.763-1.36 2.681-1.36 3.444 0l6.518 11.636c.75 1.34-.213 3.02-1.723 3.02H3.462c-1.51 0-2.473-1.68-1.723-3.02L8.257 3.1zM11 13a1 1 0 10-2 0 1 1 0 002 0zm-.25-4a.75.75 0 00-1.5 0v2a.75.75 0 001.5 0V9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <h2 className="text-2xl font-bold mb-2">⚠️ Reservas Canceladas</h2>
+                  <p className="text-lg font-semibold mb-4">Motivo: {motivoAdvertencia}</p>
+
+                  <p className="text-base">
+                    {motivoAdvertencia === 'vacaciones'
                       ? `El club estará cerrado el día ${diaSeleccionado.format('dddd, D [de] MMMM')} por vacaciones.`
                       : `Las reservas para el día ${diaSeleccionado.format('dddd, D [de] MMMM')} han sido canceladas debido a ${motivoAdvertencia}.`}
                   </p>
@@ -523,15 +591,51 @@ export default function Reservar() {
                   />
                 </label>
 
-                <label className="block">
-                  <span className="text-gray-700 font-medium">Jugador 2</span>
-                  <input
-                    type="text"
-                    value={jugador2}
-                    onChange={(e) => setJugador2(e.target.value)}
-                    className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50"
-                    placeholder="Nombre del jugador"
-                  />
+                <label className="block relative">
+                  <span className="text-gray-700 font-medium">Jugador 2 (Opcional)</span>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={jugador2}
+                      onChange={(e) => setJugador2(e.target.value)}
+                      onFocus={() => setShowAmigosDropdown(true)}
+                      onBlur={() => setTimeout(() => setShowAmigosDropdown(false), 200)}
+                      className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50"
+                      placeholder="Nombre de usuario del amigo"
+                    />
+                    {showAmigosDropdown && (
+                      <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+                        {loadingAmigos ? (
+                          <div className="px-4 py-2 text-center text-gray-500">
+                            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+                          </div>
+                        ) : amigos.length === 0 ? (
+                          <div className="px-4 py-2 text-gray-500">
+                            No tienes amigos agregados
+                          </div>
+                        ) : (
+                          amigos.map((amigo) => (
+                            <div
+                              key={amigo.id}
+                              className="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center gap-3"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                setJugador2(amigo.username);
+                                setShowAmigosDropdown(false);
+                              }}
+                            >
+                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                                {amigo.username.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="font-medium">{amigo.username}</div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </label>
 
                 <div className="bg-gray-50 p-4 rounded-lg">

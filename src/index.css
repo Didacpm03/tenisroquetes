@@ -61,3 +61,27 @@
   animation: dropdownFadeIn 0.25s ease forwards;
 }
 
+@keyframes fade-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Animación para el highlight */
+@keyframes pulse-highlight {
+  0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(234, 179, 8, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); }
+}
+
+.animate-pulse {
+  animation: pulse-highlight 2s infinite;
+}
+
+/* Transición suave para el tutorial */
+.tutorial-transition {
+  transition: all 0.3s ease-in-out;
+}
