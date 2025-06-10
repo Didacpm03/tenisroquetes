@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import Tenis2 from "../assets/png/rapida.png";
-import Tenis3 from "../assets/png/tenis3.jpg";
+import Tenis3 from "../assets/png/5730331-uhd_4096_2160_25fps.mp4";
 import Tenis4 from "../assets/png/tenis.png";
+import Tenis5 from "../assets/png/mojado.jpeg";
 import { useUser } from "../context/UserContext"; // Asume que tienes un contexto de usuario
 
 export default function FeaturedProducts() {
   const { user } = useUser(); // Obtener datos del usuario logueado
-  
+
   // Datos de ejemplo del usuario (deberías obtenerlos de tu base de datos)
   const userStats = {
     position: 3,
@@ -30,16 +31,21 @@ export default function FeaturedProducts() {
       {/* HERO SECTION con datos personales */}
       <section className="relative h-screen w-full overflow-hidden">
         <div className="absolute inset-0 z-10 bg-black bg-opacity-40"></div>
-        <img
-          src={Tenis3}
-          alt="Hero"
-          className="absolute w-full h-full object-cover object-center scale-110"
-        />
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute w-full h-full object-cover object-center scale-110 z-0"
+        >
+          <source src={Tenis3} type="video/mp4" />
+          Tu navegador no soporta el video.
+        </video>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20">
           <h1 className="text-5xl md:text-7xl font-extrabold mb-6 drop-shadow-lg">
             Club de Tennis Roquetes
           </h1>
-          
+
           {/* Sección personalizada */}
           {user && (
             <div className="mb-10 p-6 backdrop-blur-md bg-black/30 rounded-2xl border border-white/10 shadow-xl max-w-2xl">
@@ -68,9 +74,9 @@ export default function FeaturedProducts() {
               </p>
             </div>
           )}
-          
+
           <p className="text-xl md:text-2xl max-w-3xl mb-10 text-gray-200 font-light drop-shadow">
-            La nueva era del tenis. Reservas inteligentes, estadísticas en tiempo real y experiencia premium.
+            Reservas rápidas y online. Revisa tu clasificación y mucho más!
           </p>
           <Link to="/reservar">
             <button className="relative overflow-hidden group border-2 border-orange-500 hover:border-orange-400 px-10 py-4 text-lg rounded-full transition-all duration-300 hover:scale-105 bg-black bg-opacity-30">
@@ -109,21 +115,21 @@ export default function FeaturedProducts() {
             </div>
             <div className="space-y-8">
               <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
-                Reserva inteligente <span className="text-blue-400">AI-Powered</span>
+                RESERVA PISTAS <span className="text-orange-400">DISPONIBLES</span>
               </h2>
               <p className="text-lg leading-relaxed text-gray-300">
-                Nuestro sistema de reservas con IA analiza tus patrones de juego, preferencias horarias y rendimiento físico para sugerir los horarios óptimos. La confirmación instantánea mediante blockchain garantiza transparencia y seguridad en cada reserva.
+                ¿Listo para un partido? ¡Tenemos tu pista esperándote!
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-gray-900/50 border border-gray-800 rounded-xl">
-                  <div className="text-blue-400 text-sm mb-1">Smart Scheduling</div>
-                  <div className="text-white font-medium">Horarios adaptados</div>
+                  <div className="text-blue-400 text-sm mb-1">Lunes a Viernes</div>
+                  <div className="text-white font-medium">09:00 - 22:00</div>
                 </div>
                 <div className="p-4 bg-gray-900/50 border border-gray-800 rounded-xl">
-                  <div className="text-blue-400 text-sm mb-1">Blockchain</div>
-                  <div className="text-white font-medium">Transacciones seguras</div>
+                  <div className="text-blue-400 text-sm mb-1">Sabado y domingo</div>
+                  <div className="text-white font-medium">09:00 a 14:00</div>
                 </div>
-              </div>
+              </div> <br></br>
               <Link to="/reservar">
                 <button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white px-8 py-4 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 group">
                   <span>Reservar ahora</span>
@@ -147,46 +153,46 @@ export default function FeaturedProducts() {
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-              <div className="absolute top-4 right-4 bg-green-500/90 text-xs font-mono px-3 py-1 rounded-full animate-pulse">
-                LIVE DATA
+              <div className="absolute top-4 right-4 bg-orange-500/90 text-xs font-mono px-3 py-1 rounded-full animate-pulse">
+                EN DIRECTO
               </div>
               <div className="absolute bottom-0 left-0 p-8">
                 <div className="flex space-x-4">
                   <div className="text-center">
-                    <div className="text-green-400 text-2xl font-bold">87%</div>
-                    <div className="text-green-300 text-xs">EFECTIVIDAD</div>
+                    <div className="text-green-400 text-2xl font-bold">2</div>
+                    <div className="text-green-300 text-xs">GRUPO</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-green-400 text-2xl font-bold">24º</div>
-                    <div className="text-green-300 text-xs">RANKING</div>
+                    <div className="text-green-400 text-2xl font-bold">1º</div>
+                    <div className="text-green-300 text-xs">POSICIÓN</div>
                   </div>
                 </div>
               </div>
             </div>
             <div className="space-y-8">
               <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-300">
-                Estadísticas en vivo <span className="text-green-400">Real-Time</span>
+                CLASIFICACIÓN ACTUALIZADA <span className="text-orange-400">CADA DOMINGO</span>
               </h2>
               <p className="text-lg leading-relaxed text-gray-300">
-                Nuestro dashboard holográfico proporciona análisis avanzados de cada movimiento, velocidad de saque y efectividad de golpes. Compara tu rendimiento con otros jugadores y recibe predicciones de ranking basadas en machine learning.
+                ¡Revisa la clasificación y descubre en qué posición estás!
               </p>
               <div className="flex flex-wrap gap-4">
                 <div className="p-3 bg-gray-900/50 border border-gray-800 rounded-lg flex items-center">
                   <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
-                  <span className="text-white text-sm">Análisis de golpes</span>
+                  <span className="text-white text-sm">Revisa tu posición</span>
                 </div>
-                <div className="p-3 bg-gray-900/50 border border-gray-800 rounded-lg flex items-center">
+                <div className="p-3 bg-gray-900/50 border border-blue-800 rounded-lg flex items-center">
                   <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
-                  <span className="text-white text-sm">Predicción de ranking</span>
+                  <span className="text-white text-sm">Asciendes?</span>
                 </div>
-                <div className="p-3 bg-gray-900/50 border border-gray-800 rounded-lg flex items-center">
-                  <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
-                  <span className="text-white text-sm">Comparativas 3D</span>
+                <div className="p-3 bg-gray-900/50 border border-red-800 rounded-lg flex items-center">
+                  <div className="w-3 h-3 bg-red-400 rounded-full mr-2"></div>
+                  <span className="text-white text-sm">Desciendes?</span>
                 </div>
-              </div>
+              </div> <br></br>
               <Link to="/clasificaciones">
                 <button className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white px-8 py-4 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 group">
-                  <span>Explorar estadísticas</span>
+                  <span>Clasificación</span>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                   </svg>
@@ -202,13 +208,13 @@ export default function FeaturedProducts() {
           <div className="grid md:grid-cols-2 gap-16 items-center relative z-10">
             <div className="relative overflow-hidden rounded-3xl shadow-2xl transform transition-all duration-500 group-hover:scale-[1.02] border-2 border-purple-500/30 group-hover:border-purple-500/50">
               <img
-                src={Tenis3}
+                src={Tenis5}
                 alt="Contacto"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
               <div className="absolute top-0 left-0 p-6">
-                <div className="text-purple-300 font-mono text-sm bg-black/50 px-3 py-1 rounded-full">VIRTUAL ASSISTANT ONLINE</div>
+                <div className="text-purple-300 font-mono text-sm bg-black/50 px-3 py-1 rounded-full">AYUDA/SOPORTE</div>
               </div>
               <div className="absolute bottom-0 right-0 p-6">
                 <div className="w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-pink-500/30 animate-bounce">
@@ -220,10 +226,10 @@ export default function FeaturedProducts() {
             </div>
             <div className="space-y-8">
               <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-300">
-                Soporte premium <span className="text-purple-400">24/7</span>
+                SOPORTE <span className="text-orange-400">TELEFÓNICO</span>
               </h2>
               <p className="text-lg leading-relaxed text-gray-300">
-                Nuestro asistente virtual con IA resuelve el 90% de consultas al instante. Para temas complejos, conecta con nuestros expertos en tenis mediante videollamadas holográficas con realidad aumentada.
+                ¿Tienes alguna duda o problema? ¡Estamos aquí para ayudarte!
               </p>
               <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-5">
                 <div className="flex items-start">
@@ -233,11 +239,11 @@ export default function FeaturedProducts() {
                     </svg>
                   </div>
                   <div className="ml-3">
-                    <div className="text-purple-300 font-medium">Asistente TENIS-AI</div>
-                    <div className="text-gray-400 text-sm mt-1">Disponible ahora. ¿En qué puedo ayudarte hoy?</div>
+                    <div className="text-purple-300 font-medium">Soporte WhatsApp - Telefónico</div>
+                    <div className="text-gray-400 text-sm mt-1">Didac - Darío</div>
                   </div>
                 </div>
-              </div>
+              </div> <br></br>
               <Link to="/contacto">
                 <button className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white px-8 py-4 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 group">
                   <span>Conectar con soporte</span>

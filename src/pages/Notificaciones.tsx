@@ -6,7 +6,7 @@ import { FiMail, FiBell, FiClock, FiUser, FiCalendar } from 'react-icons/fi';
 
 export default function Notificaciones() {
     const [email, setEmail] = useState('');
-    const [savedEmail, setSavedEmail] = useState('');
+    const [, setSavedEmail] = useState('');
     const [notifications, setNotifications] = useState({
         reservationReminder: true,
         matchChallenge: true,
@@ -107,6 +107,26 @@ export default function Notificaciones() {
     return (
         <>
             <Navbar />
+
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1 }}
+                className="fixed inset-0 z-40 flex items-center justify-center backdrop-blur-lg bg-black/60"
+            >
+                <h1 className="text-6xl md:text-8xl font-extrabold text-transparent bg-clip-text text-center drop-shadow-lg animate-gradient"
+                    style={{
+                        backgroundImage: 'linear-gradient(-45deg, #00FFFF, #FF00FF, #00FF00, #FFFF00, #FF0000, #00FFFF)',
+                    }}
+                >
+                    PRÓXIMAMENTE!
+                </h1>
+
+
+            </motion.div>
+
+
+
             <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-6 pt-24">
                 <div className="max-w-4xl mx-auto">
                     {/* Encabezado futurista */}
