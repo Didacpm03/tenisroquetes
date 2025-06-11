@@ -97,7 +97,7 @@ export default function Navbar() {
                 <DropdownLink to="/amigos">Mis Amigos</DropdownLink>
                 <DropdownLink to="/contacto">Contacto</DropdownLink>
                 
-                {user?.username === "Didac" && (
+                {user?.username === "Dario" && (
                   <DropdownLink to="/super-admin">Admin</DropdownLink>
                 )}
               </div>
