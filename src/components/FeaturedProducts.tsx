@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import Tenis2 from "../assets/png/rapida.png";
-import Tenis3 from "../assets/png/5730331-uhd_4096_2160_25fps.mp4";
+import Tenis3 from "../assets/png/5730494-uhd_4096_2160_25fps.mp4";
 import Tenis4 from "../assets/png/tenis.png";
 import Tenis5 from "../assets/png/mojado.jpeg";
 import { useUser } from "../context/UserContext"; // Asume que tienes un contexto de usuario

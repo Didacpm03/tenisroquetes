@@ -154,7 +154,7 @@ export default function MisReservas() {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6 pt-24">
         <div className="max-w-6xl mx-auto">
           {/* Encabezado futurista */}
-          <div className="mb-12 text-center">
+          <div className="mb-12 text-center"><br /><br />
             <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 animate-gradient-x">
               MIS RESERVAS
             </h1>
