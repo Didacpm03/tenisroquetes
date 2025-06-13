@@ -71,7 +71,7 @@ export default function Navbar() {
           <NavLink to="/">Inicio</NavLink>
           <NavLink to="/manual">Manual</NavLink>
           <NavLink to="/reservar">Reservar</NavLink>
-          
+
           <div className="relative" ref={moreDropdownRef}>
             <button
               onClick={() => setShowMoreDropdown(!showMoreDropdown)}
@@ -96,10 +96,11 @@ export default function Navbar() {
                 <DropdownLink to="/partidos">Mis Partidos</DropdownLink>
                 <DropdownLink to="/amigos">Mis Amigos</DropdownLink>
                 <DropdownLink to="/contacto">Contacto</DropdownLink>
-                
-                {user?.username === "Dario" && (
+
+                {(user?.username === "Dario" || user?.username === "Didac") && (
                   <DropdownLink to="/super-admin">Admin</DropdownLink>
                 )}
+
               </div>
             )}
           </div>
@@ -107,8 +108,8 @@ export default function Navbar() {
 
         {/* Menú de usuario */}
         <div className="flex items-center space-x-2">
-          
-          
+
+
           <div className="relative" ref={userDropdownRef}>
             {user ? (
               <button
@@ -129,8 +130,8 @@ export default function Navbar() {
                 </svg>
               </button>
             ) : (
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className="text-sm bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-4 py-1.5 rounded-full transition"
               >
                 Login
@@ -199,12 +200,12 @@ export default function Navbar() {
             <MobileLink to="/contacto" onClick={() => setIsMenuOpen(false)}>Contacto</MobileLink>
             <MobileLink to="/notificaciones" onClick={() => setIsMenuOpen(false)}>Notificaciones</MobileLink>
             <MobileLink to="/change-password" onClick={() => setIsMenuOpen(false)}>Cambiar contraseña</MobileLink>
-            
+
             {user?.username === "Didac" && (
               <MobileLink to="/super-admin" onClick={() => setIsMenuOpen(false)}>Admin</MobileLink>
             )}
-            
-            <button 
+
+            <button
               onClick={() => {
                 handleShowTutorial();
                 setIsMenuOpen(false);
@@ -213,7 +214,7 @@ export default function Navbar() {
             >
               Tutorial
             </button>
-            
+
             {user && (
               <button
                 onClick={handleLogout}
@@ -231,8 +232,8 @@ export default function Navbar() {
 
 // Componentes auxiliares
 const NavLink = ({ to, children }: { to: string; children: React.ReactNode }) => (
-  <Link 
-    to={to} 
+  <Link
+    to={to}
     className="text-gray-300 hover:text-white px-3 py-1.5 rounded-full hover:bg-gray-700 transition text-sm"
   >
     {children}

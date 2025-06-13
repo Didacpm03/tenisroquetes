@@ -123,11 +123,11 @@ export default function FeaturedProducts() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-gray-900/50 border border-gray-800 rounded-xl">
                   <div className="text-blue-400 text-sm mb-1">Lunes a Viernes</div>
-                  <div className="text-white font-medium">09:00 - 22:00</div>
+                  <div className="text-white font-medium">Mañana: 10:00 a 13:00 <br></br>Tarde: 16:00 a 22:00</div>
                 </div>
                 <div className="p-4 bg-gray-900/50 border border-gray-800 rounded-xl">
                   <div className="text-blue-400 text-sm mb-1">Sabado y domingo</div>
-                  <div className="text-white font-medium">09:00 a 14:00</div>
+                  <div className="text-white font-medium">Mañana: 09:00 a 14:00 <br></br>Tarde: Cerrado</div>
                 </div>
               </div> <br></br>
               <Link to="/reservar">

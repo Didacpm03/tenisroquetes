@@ -1,21 +1,26 @@
 import { useState, useEffect } from "react";
-import dayjs from "dayjs";
 import "dayjs/locale/es";
 import { supabase } from "../../supabaseClient";
 import Navbar from "../components/Navbar";
-import Lluvia from '../assets/png/mojado.jpeg';
-import Vacaciones from '../assets/png/vacaciones.jpg';
-import { sendReservationReminder } from './emailService';
+import PadelBackground from '../assets/png/padel.jpg'; // Nueva imagen de fondo futurista
+import dayjs from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween';
 
-
-
+dayjs.extend(isBetween);
 dayjs.locale("es");
 
 const pistasTierra = [1, 2];
 const pistasRapida = [3, 4];
 const pistasPadel = [5];
 
-function generarIntervalos(inicio: string, fin: string) {
+// Updated function to accept parameters
+function generarIntervalos(inicioManana: string, finManana: string, inicioTarde?: string, finTarde?: string) {
+  const intervaloManana = generarBloqueHorario(inicioManana, finManana);
+  const intervaloTarde = inicioTarde && finTarde ? generarBloqueHorario(inicioTarde, finTarde) : [];
+  return [...intervaloManana, ...intervaloTarde];
+}
+
+function generarBloqueHorario(inicio: string, fin: string) {
   const resultado: string[] = [];
   let actual = dayjs().startOf("day").hour(parseInt(inicio.split(":")[0])).minute(parseInt(inicio.split(":")[1]));
   const finHora = dayjs().startOf("day").hour(parseInt(fin.split(":")[0])).minute(parseInt(fin.split(":")[1]));
@@ -26,9 +31,9 @@ function generarIntervalos(inicio: string, fin: string) {
   return resultado;
 }
 
-// Ajustar los horarios para permitir reservas de 1h30
-const horariosEntreSemana = generarIntervalos("9:00", "21:00"); // Última reserva a las 20:30 (termina a las 22:00)
-const horariosFinSemana = generarIntervalos("09:00", "13:00"); // Última reserva a las 12:30 (termina a las 14:00)
+// Updated horarios definitions
+const horariosEntreSemana = generarIntervalos("10:00", "13:00", "16:00", "22:00");
+const horariosFinSemana = generarIntervalos("09:00", "12:30"); // Solo mañana hasta las 12:30
 
 type Reserva = {
   id: number;
@@ -37,7 +42,12 @@ type Reserva = {
   hora: string;
   duracion: number;
   jugador1: string;
-  jugador2: string;
+  jugador2?: string | null;  // Cambiado a opcional
+  jugador3?: string;
+  jugador4?: string;
+  tipo_partido?: "normal" | "abierto";
+  modalidad?: "individual" | "dobles";
+  estado?: "abierto" | "completo";
 };
 
 interface Amigo {
@@ -54,22 +64,26 @@ export default function Reservar() {
   const [formVisible, setFormVisible] = useState(false);
   const [jugador1, setJugador1] = useState("");
   const [jugador2, setJugador2] = useState("");
-  const [duracion] = useState(90);
   const [pistaSeleccionada, setPistaSeleccionada] = useState<number | null>(null);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [advertencias, setAdvertencias] = useState<any[]>([]);
-  const [loadingAdvertencias, setLoadingAdvertencias] = useState(false);
-  const [amigos, setAmigos] = useState<Amigo[]>([]);
-  const [loadingAmigos, setLoadingAmigos] = useState(false);
-  const [showAmigosDropdown, setShowAmigosDropdown] = useState(false);
+  const [, setLoadingAdvertencias] = useState(false);
+  const [, setAmigos] = useState<Amigo[]>([]);
+  const [, setLoadingAmigos] = useState(false);
+  const [partidosAbiertos, setPartidosAbiertos] = useState<Reserva[]>([]);
+  const [jugador3, setJugador3] = useState("");
+  const [jugador4, setJugador4] = useState("");
+  const [tipoPartido, setTipoPartido] = useState<"normal" | "abierto">("normal");
+  const [modalidadPartido, setModalidadPartido] = useState<"individual" | "dobles">("individual");
+  const [unirseLoading, setUnirseLoading] = useState<number | null>(null);
 
   const proximosDias = Array(7).fill(0).map((_, i) => hoy.add(i, "day"));
 
   const horarios = diaSeleccionado.day() >= 1 && diaSeleccionado.day() <= 5
-    ? horariosEntreSemana
-    : horariosFinSemana;
+  ? horariosEntreSemana
+  : horariosFinSemana;
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
@@ -105,7 +119,6 @@ export default function Reservar() {
 
       setLoadingAmigos(true);
       try {
-        // Consulta similar a la de Amigos.tsx
         const { data: amigosData, error } = await supabase
           .from('amigos')
           .select(`
@@ -118,7 +131,6 @@ export default function Reservar() {
 
         if (error) throw error;
 
-        // Formatear los datos como en Amigos.tsx
         const amigosFormateados = (amigosData || []).map((relacion: any) => ({
           id: relacion.amigo.id,
           username: relacion.amigo.username
@@ -139,7 +151,6 @@ export default function Reservar() {
     async function cargarReservas() {
       const fechaISO = diaSeleccionado.format("YYYY-MM-DD");
 
-      // Determinar la tabla según el tipo de pista
       const tableName = tipoPista === "padel" ? "reservas_padel" : "reservas";
 
       const { data, error } = await supabase
@@ -159,6 +170,18 @@ export default function Reservar() {
       );
 
       setReservas(reservasFiltradas);
+
+      // Cargar partidos abiertos
+      const { data: abiertosData, error: abiertosError } = await supabase
+        .from(tableName)
+        .select("*")
+        .eq("fecha", fechaISO)
+        .eq("tipo_partido", "abierto")
+        .eq("estado", "abierto");
+
+      if (!abiertosError) {
+        setPartidosAbiertos(abiertosData || []);
+      }
     }
 
     cargarReservas();
@@ -183,7 +206,6 @@ export default function Reservar() {
       const horaReserva = rh * 60 + rm; // Minutos de inicio de la reserva
       const horaFinReserva = horaReserva + r.duracion; // Minutos de fin de la reserva
 
-      // Comprobar si la hora actual está dentro del intervalo de la reserva
       return horaActual >= horaReserva && horaActual < horaFinReserva;
     });
   }
@@ -199,20 +221,57 @@ export default function Reservar() {
   }
 
   function excedeHorario(hora: string): boolean {
-    const [h, m] = hora.split(":").map(Number);
-    const horaReserva = dayjs().hour(h).minute(m);
-    const horaFinReserva = horaReserva.add(duracion, 'minute');
+  const [h, m] = hora.split(":").map(Number);
+  const horaReserva = dayjs().hour(h).minute(m).second(0);
+  
+  // Verificar si es día de semana (lunes a viernes)
+  const esDiaSemana = diaSeleccionado.day() >= 1 && diaSeleccionado.day() <= 5;
 
-    if (diaSeleccionado.day() >= 1 && diaSeleccionado.day() <= 5) {
-      // Entre semana: cierre a las 22:00
-      const cierre = dayjs().hour(22).minute(0);
-      return horaFinReserva.isAfter(cierre);
-    } else {
-      // Fin de semana: cierre a las 14:00
-      const cierre = dayjs().hour(14).minute(0);
-      return horaFinReserva.isAfter(cierre);
+  if (esDiaSemana) {
+    // Verificar si es por la mañana (10:00-13:00)
+    const esManana = horaReserva.isBetween(
+      dayjs().hour(10).minute(0).second(0),
+      dayjs().hour(13).minute(0).second(0),
+      null,
+      '[)'
+    );
+
+    // Verificar si es por la tarde (16:00-22:00)
+    const esTarde = horaReserva.isBetween(
+      dayjs().hour(16).minute(0).second(0),
+      dayjs().hour(22).minute(0).second(0),
+      null,
+      '[)'
+    );
+
+    const duracionPartido = modalidadPartido === "dobles" ? 120 : 90;
+    const horaFinReserva = horaReserva.add(duracionPartido, 'minute');
+
+    if (esManana) {
+      return horaFinReserva.isAfter(dayjs().hour(13).minute(0).second(0));
+    } else if (esTarde) {
+      return horaFinReserva.isAfter(dayjs().hour(22).minute(0).second(0));
+    }
+  } else {
+    // Fin de semana (sábado y domingo) - solo mañana hasta 12:30
+    const esMananaFinSemana = horaReserva.isBetween(
+      dayjs().hour(9).minute(0).second(0),
+      dayjs().hour(12).minute(30).second(0),
+      null,
+      '[)'
+    );
+
+    const duracionPartido = modalidadPartido === "dobles" ? 120 : 90;
+    const horaFinReserva = horaReserva.add(duracionPartido, 'minute');
+
+    if (esMananaFinSemana) {
+      return horaFinReserva.isAfter(dayjs().hour(14).minute(0).second(0));
     }
   }
+
+  return true; // Si no está en ninguno de los bloques horarios permitidos
+}
+
 
   async function existeUsuario(username: string): Promise<boolean> {
     const { data, error } = await supabase
@@ -251,6 +310,97 @@ export default function Reservar() {
     return (data?.length ?? 0) >= 2;
   }
 
+  async function unirseAPartido(partidoId: number) {
+    if (!user) return;
+
+    setUnirseLoading(partidoId);
+    setMensaje(null);
+
+    try {
+      const tableName = tipoPista === "padel" ? "reservas_padel" : "reservas";
+
+      const { data: partidoData, error: partidoError } = await supabase
+        .from(tableName)
+        .select("*")
+        .eq("id", partidoId)
+        .single();
+
+      if (partidoError) throw partidoError;
+
+      const partido = partidoData as Reserva;
+
+      if (
+        partido.jugador1 === user.username ||
+        partido.jugador2 === user.username ||
+        partido.jugador3 === user.username ||
+        partido.jugador4 === user.username
+      ) {
+        setMensaje("Ya estás en este partido");
+        return;
+      }
+
+      let updateData: Partial<Reserva> = {};
+      let nuevoEstado = partido.estado;
+
+      if (partido.modalidad === "individual") {
+        if (!partido.jugador2) {
+          updateData = { jugador2: user.username };
+          nuevoEstado = "completo";
+        } else {
+          setMensaje("No hay espacios disponibles en este partido");
+          return;
+        }
+      } else {
+        if (!partido.jugador2) {
+          updateData = { jugador2: user.username };
+        } else if (!partido.jugador3) {
+          updateData = { jugador3: user.username };
+        } else if (!partido.jugador4) {
+          updateData = { jugador4: user.username };
+          nuevoEstado = "completo";
+        } else {
+          setMensaje("No hay espacios disponibles en este partido");
+          return;
+        }
+      }
+
+      const { error } = await supabase
+        .from(tableName)
+        .update({ ...updateData, estado: nuevoEstado })
+        .eq("id", partidoId);
+
+      if (error) throw error;
+
+      setPartidosAbiertos(prev =>
+        prev.map(p =>
+          p.id === partidoId
+            ? { ...p, ...updateData, estado: nuevoEstado } as Reserva
+            : p
+        )
+      );
+
+      const fechaISO = diaSeleccionado.format("YYYY-MM-DD");
+      const { data: nuevasReservas } = await supabase
+        .from(tableName)
+        .select("*")
+        .eq("fecha", fechaISO);
+
+      const reservasFiltradas = (nuevasReservas || []).filter(reserva =>
+        tipoPista === "tierra" ? pistasTierra.includes(reserva.pista) :
+          tipoPista === "rapida" ? pistasRapida.includes(reserva.pista) :
+            pistasPadel.includes(reserva.pista)
+      );
+
+      setReservas(reservasFiltradas);
+
+      setMensaje("¡Te has unido al partido con éxito!");
+    } catch (err) {
+      setMensaje("Error al unirse al partido: " + (err instanceof Error ? err.message : "Error desconocido"));
+    } finally {
+      setUnirseLoading(null);
+    }
+  }
+
   async function reservar() {
     if (!horaSeleccionada || !pistaSeleccionada) {
       setMensaje("Debes seleccionar hora y pista");
@@ -267,20 +417,51 @@ export default function Reservar() {
       return;
     }
 
+    if (tipoPartido === "normal") {
+      if (modalidadPartido === "individual" && !jugador2) {
+        setMensaje("Debe ingresar nombre del Jugador 2");
+        return;
+      }
+      if (modalidadPartido === "dobles" && (!jugador2 || !jugador3 || !jugador4)) {
+        setMensaje("Para dobles normales debe ingresar los 4 jugadores");
+        return;
+      }
+    }
+    if (tipoPartido === "normal" && !jugador2) {
+      setMensaje("Debe ingresar nombre del Jugador 2");
+      return;
+    }
+
     setMensaje(null);
     setLoading(true);
 
     try {
-      const [existeJ1, existeJ2] = await Promise.all([
+      const verificaciones = [
         existeUsuario(jugador1),
-        existeUsuario(jugador2),
-      ]);
+        jugador2 ? existeUsuario(jugador2) : Promise.resolve(true),
+        jugador3 ? existeUsuario(jugador3) : Promise.resolve(true),
+        jugador4 ? existeUsuario(jugador4) : Promise.resolve(true),
+      ];
 
-      if (!existeJ1 || !existeJ2) {
-        let errorMsg = "";
-        if (!existeJ1) errorMsg += `El jugador 1 (${jugador1}) no existe. `;
-        if (!existeJ2) errorMsg += `El jugador 2 (${jugador2}) no existe. `;
-        setMensaje(errorMsg + "Por favor, verifica los nombres.");
+      const [existeJ1, existeJ2, existeJ3, existeJ4] = await Promise.all(verificaciones);
+
+      if (!existeJ1) {
+        setMensaje(`El jugador 1 (${jugador1}) no existe.`);
+        setLoading(false);
+        return;
+      }
+      if (jugador2 && !existeJ2) {
+        setMensaje(`El jugador 2 (${jugador2}) no existe.`);
+        setLoading(false);
+        return;
+      }
+      if (jugador3 && !existeJ3) {
+        setMensaje(`El jugador 3 (${jugador3}) no existe.`);
+        setLoading(false);
+        return;
+      }
+      if (jugador4 && !existeJ4) {
+        setMensaje(`El jugador 4 (${jugador4}) no existe.`);
         setLoading(false);
         return;
       }
@@ -291,69 +472,72 @@ export default function Reservar() {
     }
 
     if (await maxReservasSemana(jugador1)) {
-      setMensaje(`Jugador 1 ha alcanzado el máximo de 2 reservas esta semana en pistas de ${tipoPista}.`);
+      setMensaje(`Jugador 1 ha alcanzado el máximo de 2 reservas semanales.`);
       setLoading(false);
       return;
     }
     if (jugador2 && await maxReservasSemana(jugador2)) {
-      setMensaje(`Jugador 2 ha alcanzado el máximo de 2 reservas esta semana en pistas de ${tipoPista}.`);
+      setMensaje(`Jugador 2 ha alcanzado el máximo de 2 reservas semanales.`);
       setLoading(false);
       return;
     }
 
     const horaDB = `${horaSeleccionada}:00`;
+    const duracionReserva = modalidadPartido === "dobles" ? 120 : 90;
 
     const nuevaReserva = {
       fecha: diaSeleccionado.format("YYYY-MM-DD"),
       hora: horaDB,
-      duracion,
+      duracion: duracionReserva,
       pista: pistaSeleccionada,
       jugador1,
-      jugador2,
-      estado_pago: 'pendiente' // Añadir este campo
+      jugador2: jugador2 || null,
+      jugador3: modalidadPartido === "dobles" ? jugador3 || null : null,
+      jugador4: modalidadPartido === "dobles" ? jugador4 || null : null,
+      tipo_partido: tipoPartido,
+      modalidad: modalidadPartido,
+      estado: tipoPartido === "abierto" ? "abierto" : undefined,
+      estado_pago: 'pendiente'
     };
 
     const tableName = tipoPista === "padel" ? "reservas_padel" : "reservas";
-    const { error } = await supabase.from(tableName).insert(nuevaReserva);
+    const { data, error } = await supabase
+      .from(tableName)
+      .insert(nuevaReserva)
+      .select();
 
     if (error) {
-      setMensaje("Error al guardar reserva");
+      setMensaje("Error al guardar reserva: " + error.message);
       setLoading(false);
       return;
     }
 
-    // Enviar notificación de reserva
-    try {
-      await sendReservationReminder({
-        ...nuevaReserva,
-        user_id: user.id,
-        tipo: tipoPista,
-      });
-    } catch (err) {
-      console.error('Error enviando notificación:', err);
+    if (tipoPartido === "abierto") {
+      setPartidosAbiertos(prev => [...prev, data[0] as Reserva]);
     }
 
-    setMensaje("Reserva realizada con éxito!");
-    setLoading(false);
-
     const fechaISO = diaSeleccionado.format("YYYY-MM-DD");
-    const { data } = await supabase
+    const { data: nuevasReservas } = await supabase
       .from(tableName)
       .select("*")
       .eq("fecha", fechaISO);
 
-    const reservasFiltradas = (data || []).filter(reserva =>
+    const reservasFiltradas = (nuevasReservas || []).filter(reserva =>
       tipoPista === "tierra" ? pistasTierra.includes(reserva.pista) :
         tipoPista === "rapida" ? pistasRapida.includes(reserva.pista) :
           pistasPadel.includes(reserva.pista)
     );
 
     setReservas(reservasFiltradas);
+    setMensaje(tipoPartido === "abierto" ? "Partido abierto creado con éxito!" : "Reserva realizada con éxito!");
+    setLoading(false);
 
     setHoraSeleccionada(null);
     setFormVisible(false);
     setJugador1("");
     setJugador2("");
+    setJugador3("");
+    setJugador4("");
     setPistaSeleccionada(null);
   }
 
@@ -366,323 +550,485 @@ export default function Reservar() {
       tipoPista === "rapida" ? pistasRapida :
         pistasPadel;
 
-  // Verificar si hay advertencia para la fecha actual
   const tieneAdvertencia = advertencias.length > 0;
-  const motivoAdvertencia = tieneAdvertencia ? advertencias[0].motivo : null;
 
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gradient-to-b from-green-50 to-white p-6 pt-24">
-        {/* Título */}
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-center mb-6 text-green-800">
-            Reserva tu pista {tipoPista === "padel" ? "de pádel" : "de tennis"}
-          </h1>
-          {user && (
-            <p className="text-center text-lg text-green-600 mb-10">
-              Bienvenido, <span className="font-semibold">{user.nombre || user.username || user.email.split('@')[0]}</span>
-            </p>
-          )}
+      <main
+        className={`min-h-screen transition-all duration-500 ${tipoPista === "padel" ?
+          "bg-black" :
+          "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+          }`}
+        style={tipoPista === "padel" ? {
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${PadelBackground})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        } : {}}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          {/* Título futurista */}
+          <div className="text-center mb-16">
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-cyan-500 to-blue-500 animate-gradient-x">
+              RESERVA {tipoPista === "padel" ? "PÁDEL" : "TENNIS"}
+            </h1>
+            {user && (
+              <p className="text-xl text-gray-300 font-light">
+                Bienvenido, <span className="font-medium text-cyan-400">{user.nombre || user.username || user.email.split('@')[0]}</span>
+              </p>
+            )}
+          </div>
 
-          {/* Selector de tipo de pista */}
-          <div className="flex justify-center gap-6 mb-10">
+          {/* Selector de pista futurista */}
+          <div className="flex flex-wrap justify-center gap-4 mb-16">
             <button
               onClick={() => setTipoPista("tierra")}
-              className={`px-8 py-3 rounded-xl font-semibold text-lg transition-all duration-300 ${tipoPista === "tierra"
-                ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg"
-                : "bg-white text-green-900 hover:bg-green-50 border-2 border-green-200"
+              className={`px-6 py-3 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center tracking-tight
+      ${tipoPista === "tierra"
+                  ? "bg-white text-blue-600 border-2 border-blue-400 shadow-lg shadow-blue-200"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300"
                 }`}
             >
-              Pista de Tierra
+              TENNIS <span className="ml-1 text-orange-500">TIERRA</span>
             </button>
+
             <button
               onClick={() => setTipoPista("rapida")}
-              className={`px-8 py-3 rounded-xl font-semibold text-lg transition-all duration-300 ${tipoPista === "rapida"
-                ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg"
-                : "bg-white text-blue-900 hover:bg-blue-50 border-2 border-blue-200"
+              className={`px-6 py-3 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center tracking-tight
+      ${tipoPista === "rapida"
+                  ? "bg-white text-blue-600 border-2 border-blue-400 shadow-lg shadow-blue-200"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300"
                 }`}
             >
-              Pista Rápida (Quick)
+              TENNIS <span className="ml-1 text-blue-500">RÁPIDA</span>
             </button>
+
             <button
               onClick={() => setTipoPista("padel")}
-              className={`px-8 py-3 rounded-xl font-semibold text-lg transition-all duration-300 ${tipoPista === "padel"
-                ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg"
-                : "bg-white text-black hover:bg-gray-100 border-2 border-gray-300"
+              className={`px-6 py-3 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center tracking-tight
+      ${tipoPista === "padel"
+                  ? "bg-white text-purple-600 border-2 border-purple-400 shadow-lg shadow-purple-200"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300"
                 }`}
             >
-              Pádel
+              <span className="mr-1"></span> <span className="text-purple-500">PÁDEL</span>
             </button>
           </div>
 
-          {/* Selector de día */}
-          <div className="flex justify-center gap-4 mb-6 overflow-x-auto pb-4">
-            {proximosDias.map((dia) => {
-              const esSeleccionado = dia.isSame(diaSeleccionado, "day");
-              const valido = diaValido(dia);
-              return (
-                <button
-                  key={dia.toString()}
-                  onClick={() => valido && setDiaSeleccionado(dia)}
-                  disabled={!valido}
-                  className={`min-w-[110px] rounded-xl py-4 px-2 font-semibold text-center transition-all ${esSeleccionado
-                    ? "bg-gradient-to-br from-green-600 to-green-700 text-white shadow-lg"
-                    : "bg-white text-green-900 hover:bg-green-50 border border-green-200"
-                    } ${!valido ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  <div className="text-sm uppercase tracking-wider">
-                    {dia.format("dddd").charAt(0).toUpperCase() + dia.format("dddd").slice(1, 3)}
-                  </div>
-                  <div className="text-xl font-bold mt-1">{dia.format("DD")}</div>
-                  <div className="text-xs text-green-600 mt-1">{dia.format("MMM")}</div>
-                </button>
-              );
-            })}
+          {/* Selector de días futurista */}
+          <div className="flex overflow-x-auto pb-4 mb-10 scrollbar-hide">
+            <div className="flex space-x-3 mx-auto">
+              {proximosDias.map((dia) => {
+                const esSeleccionado = dia.isSame(diaSeleccionado, "day");
+                const valido = diaValido(dia);
+                return (
+                  <button
+                    key={dia.toString()}
+                    onClick={() => valido && setDiaSeleccionado(dia)}
+                    disabled={!valido}
+                    className={`flex flex-col items-center justify-center min-w-[90px] p-3 rounded-xl transition-all duration-300 ${esSeleccionado ?
+                      "bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30" :
+                      "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                      } ${!valido ? "opacity-40 cursor-not-allowed" : ""}`}
+                  >
+                    <div className="text-xs uppercase font-medium tracking-wider">
+                      {dia.format("ddd")}
+                    </div>
+                    <div className="text-2xl font-bold my-1">{dia.format("DD")}</div>
+                    <div className="text-xs opacity-70">{dia.format("MMM")}</div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Mostrar advertencia si existe */}
-          {loadingAdvertencias ? (
-            <div className="flex justify-center items-center h-32 mb-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-4 border-b-4 border-green-600"></div>
-            </div>
-          ) : tieneAdvertencia ? (
-            <div className="relative rounded-xl overflow-hidden shadow-lg mb-10">
-              <img
-                src={motivoAdvertencia === 'vacaciones' ? Vacaciones : Lluvia}
-                alt={motivoAdvertencia === 'vacaciones' ? "Club cerrado por vacaciones" : "Pista mojada"}
-                className="w-full h-[550px] object-cover opacity-70"
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-                <div className="bg-red-600 bg-opacity-90 rounded-2xl shadow-lg p-8 max-w-md text-white text-center border-4 border-red-300 animate-fade-in">
+          {/* Partidos abiertos futuristas */}
+          {partidosAbiertos.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+                <span className="bg-gradient-to-r from-purple-500 to-pink-500 w-4 h-4 rounded-full mr-3 animate-pulse"></span>
+                PARTIDOS ABIERTOS
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {partidosAbiertos.map((partido) => (
+                  <div key={partido.id} className="bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 hover:border-cyan-400 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/20">
+                    <div className="p-5">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <span className="inline-block px-3 py-1 bg-gray-700 text-cyan-400 rounded-full text-xs font-bold mb-2">
+                            PISTA {partido.pista}
+                          </span>
+                          <h3 className="text-lg font-bold text-white">
+                            {dayjs(partido.fecha).format("DD/MM")} | {partido.hora.substring(0, 5)}
+                          </h3>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${partido.modalidad === "individual" ?
+                          "bg-blue-900/50 text-blue-400" :
+                          "bg-purple-900/50 text-purple-400"
+                          }`}>
+                          {partido.modalidad === "individual" ? "INDIVIDUAL" : "DOBLES"}
+                        </span>
+                      </div>
 
-                  <div className="flex justify-center mb-4">
-                    <div className="bg-white rounded-full p-3 shadow-md">
-                      <svg className="w-10 h-10 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M8.257 3.099c.763-1.36 2.681-1.36 3.444 0l6.518 11.636c.75 1.34-.213 3.02-1.723 3.02H3.462c-1.51 0-2.473-1.68-1.723-3.02L8.257 3.1zM11 13a1 1 0 10-2 0 1 1 0 002 0zm-.25-4a.75.75 0 00-1.5 0v2a.75.75 0 001.5 0V9z" clipRule="evenodd" />
-                      </svg>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white font-bold text-sm">
+                            {partido.jugador1.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="font-medium text-gray-200">{partido.jugador1}</span>
+                        </div>
+
+                        {partido.jugador2 && (
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                              {partido.jugador2.charAt(0).toUpperCase()}
+                            </div>
+                            <span className="font-medium text-gray-200">{partido.jugador2}</span>
+                          </div>
+                        )}
+
+                        {partido.modalidad === "dobles" && (
+                          <>
+                            <div className="flex items-center gap-3">
+                              <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${partido.jugador3 ?
+                                "bg-gradient-to-br from-yellow-500 to-amber-600 text-white" :
+                                "bg-gray-700 text-gray-500"
+                                }`}>
+                                {partido.jugador3 ? partido.jugador3.charAt(0).toUpperCase() : "?"}
+                              </div>
+                              <span className={partido.jugador3 ? "font-medium text-gray-200" : "text-gray-500"}>
+                                {partido.jugador3 || "DISPONIBLE"}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${partido.jugador4 ?
+                                "bg-gradient-to-br from-pink-500 to-rose-600 text-white" :
+                                "bg-gray-700 text-gray-500"
+                                }`}>
+                                {partido.jugador4 ? partido.jugador4.charAt(0).toUpperCase() : "?"}
+                              </div>
+                              <span className={partido.jugador4 ? "font-medium text-gray-200" : "text-gray-500"}>
+                                {partido.jugador4 || "DISPONIBLE"}
+                              </span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => unirseAPartido(partido.id)}
+                        disabled={
+                          unirseLoading === partido.id ||
+                          (partido.estado === "completo") ||
+                          (partido.jugador1 === user?.username) ||
+                          (partido.jugador2 === user?.username) ||
+                          (partido.jugador3 === user?.username) ||
+                          (partido.jugador4 === user?.username)
+                        }
+                        className={`mt-5 w-full py-3 px-4 rounded-lg font-bold transition-all duration-300 ${unirseLoading === partido.id ?
+                          "bg-gray-700 text-gray-400" :
+                          partido.estado === "completo" ||
+                            (partido.jugador1 === user?.username) ||
+                            (partido.jugador2 === user?.username) ||
+                            (partido.jugador3 === user?.username) ||
+                            (partido.jugador4 === user?.username) ?
+                            "bg-gray-700 text-gray-500 cursor-not-allowed" :
+                            "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white shadow-lg"
+                          }`}
+                      >
+                        {unirseLoading === partido.id ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            UNIÉNDOSE...
+                          </>
+                        ) : partido.estado === "completo" ? (
+                          "COMPLETO"
+                        ) : (partido.jugador1 === user?.username) ||
+                          (partido.jugador2 === user?.username) ||
+                          (partido.jugador3 === user?.username) ||
+                          (partido.jugador4 === user?.username) ? (
+                          "YA ESTÁS AQUÍ"
+                        ) : (
+                          "UNIRSE AL PARTIDO"
+                        )}
+                      </button>
                     </div>
                   </div>
-
-                  <h2 className="text-2xl font-bold mb-2">⚠️ Reservas Canceladas</h2>
-                  <p className="text-lg font-semibold mb-4">Motivo: {motivoAdvertencia}</p>
-
-                  <p className="text-base">
-                    {motivoAdvertencia === 'vacaciones'
-                      ? `El club estará cerrado el día ${diaSeleccionado.format('dddd, D [de] MMMM')} por vacaciones.`
-                      : `Las reservas para el día ${diaSeleccionado.format('dddd, D [de] MMMM')} han sido canceladas debido a ${motivoAdvertencia}.`}
-                  </p>
-                </div>
+                ))}
               </div>
             </div>
-          ) : (
-            <div className="grid gap-4">
-              {horarios.map((hora) => (
-                <div key={hora} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="flex items-center">
-                    <div className="w-24 flex-shrink-0 p-4 bg-green-50 text-center">
-                      <span className="text-lg font-bold text-green-800">{hora}</span>
+          )}
+
+          {/* Horarios futuristas */}
+          <div className="space-y-4">
+            {horarios.map((hora) => (
+              <div key={hora} className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 overflow-hidden transition-all duration-300 hover:border-cyan-400/50">
+                <div className={`flex items-center ${tipoPista === "padel" ? "justify-center" : ""}`}>
+                  {tipoPista !== "padel" && (
+                    <div className="w-24 flex-shrink-0 p-4 bg-gray-700 text-center">
+                      <span className="text-lg font-bold text-cyan-400">{hora}</span>
                     </div>
+                  )}
 
-                    <div className="flex-1 grid grid-cols-2 gap-4 p-4">
-                      {pistasDisponibles.map((p) => {
-                        const ocupada = estaOcupada(hora, p);
-                        const seleccionada = hora === horaSeleccionada && p === pistaSeleccionada;
-                        const pasada = horaPasada(hora);
-                        const fueraHorario = excedeHorario(hora);
-                        const reserva = reservas.find(r =>
-                          r.pista === p &&
-                          r.hora.startsWith(hora) &&
-                          r.fecha === diaSeleccionado.format("YYYY-MM-DD")
-                        );
+                  <div className={`${tipoPista === "padel" ? "w-full" : "flex-1"} grid ${tipoPista === "padel" ? "grid-cols-1" : "grid-cols-2"} gap-4 p-4`}>
+                    {pistasDisponibles.map((p) => {
+                      const ocupada = estaOcupada(hora, p);
+                      const seleccionada = hora === horaSeleccionada && p === pistaSeleccionada;
+                      const pasada = horaPasada(hora);
+                      const fueraHorario = excedeHorario(hora);
+                      const reserva = reservas.find(r =>
+                        r.pista === p &&
+                        r.hora.startsWith(hora) &&
+                        r.fecha === diaSeleccionado.format("YYYY-MM-DD")
+                      );
 
-                        return (
-                          <div key={p} className="relative">
-                            <button
-                              disabled={ocupada || pasada || fueraHorario || tieneAdvertencia}
-                              onClick={() => {
-                                if (!pasada && !ocupada && !fueraHorario && !tieneAdvertencia) {
-                                  setHoraSeleccionada(hora);
-                                  setPistaSeleccionada(p);
-                                  setFormVisible(true);
-                                }
-                              }}
-                              className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-between ${ocupada
-                                ? "bg-red-50 text-red-800 border border-red-200 cursor-not-allowed"
-                                : pasada
-                                  ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                                  : fueraHorario
-                                    ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                                    : tieneAdvertencia
-                                      ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                                      : seleccionada
-                                        ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md"
-                                        : "bg-green-50 text-green-800 hover:bg-green-100 border border-green-200"
-                                }`}
-                            >
-                              <span>Pista {p}</span>
-                              <span className="text-sm font-normal">
-                                {ocupada
-                                  ? "Pista Reservada"
-                                  : pasada
-                                    ? "No disponible"
-                                    : fueraHorario
-                                      ? "Fuera de horario"
-                                      : tieneAdvertencia
-                                        ? "Cancelado"
-                                        : "Disponible"}
-                              </span>
-                            </button>
-
-                            {ocupada && reserva && (
-                              <div className="mt-2 text-xs text-gray-600">
-                                <div className="flex justify-between">
-
-                                </div>
-                                {reserva.jugador2 && (
-                                  <div className="flex justify-between">
-
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                      return (
+                        <div key={p} className="relative">
+                          {tipoPista === "padel" && (
+                            <div className="text-center mb-3">
+                              <span className="text-lg font-bold text-cyan-400">{hora}</span>
+                            </div>
+                          )}
+                          <button
+                            disabled={ocupada || pasada || fueraHorario || tieneAdvertencia}
+                            onClick={() => {
+                              if (!pasada && !ocupada && !fueraHorario && !tieneAdvertencia) {
+                                setHoraSeleccionada(hora);
+                                setPistaSeleccionada(p);
+                                setFormVisible(true);
+                              }
+                            }}
+                            className={`w-full py-4 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-between ${ocupada ?
+                              "bg-gray-900/50 text-gray-500 border border-gray-700 cursor-not-allowed" :
+                              pasada ?
+                                "bg-gray-900/50 text-gray-500 border border-gray-700 cursor-not-allowed" :
+                                fueraHorario ?
+                                  "bg-gray-900/50 text-gray-500 border border-gray-700 cursor-not-allowed" :
+                                  tieneAdvertencia ?
+                                    "bg-gray-900/50 text-gray-500 border border-gray-700 cursor-not-allowed" :
+                                    seleccionada ?
+                                      "bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-lg border border-cyan-400/50" :
+                                      "bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600 hover:border-cyan-400/30"
+                              }`}
+                          >
+                            <span className="flex items-center">
+                              <span className="mr-2"></span> Pista {p}
+                            </span>
+                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${ocupada ?
+                              "bg-red-900/30 text-red-400" :
+                              pasada || fueraHorario || tieneAdvertencia ?
+                                "bg-gray-800 text-gray-500" :
+                                "bg-cyan-900/30 text-cyan-400"
+                              }`}>
+                              {ocupada ? "OCUPADA - PISTA RESERVADA" : pasada ? "No Disponible" : fueraHorario ? "FUERA DE HORARIO" : tieneAdvertencia ? "CERRADO" : "DISPONIBLE"}
+                            </span>
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Formulario de reserva futurista */}
+          {formVisible && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex justify-center items-center p-4 z-50">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  reservar();
+                }}
+                className="bg-gray-900 border border-gray-700 rounded-2xl p-8 max-w-md w-full shadow-xl shadow-cyan-500/10 space-y-6"
+              >
+                <h3 className="text-2xl font-bold text-center bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                  CONFIRMAR RESERVA
+                </h3>
+
+                <div className="bg-gray-800 rounded-xl p-4 text-center border border-gray-700">
+                  <div className="text-lg font-semibold text-cyan-400">Pista {pistaSeleccionada}</div>
+                  <div className="text-gray-400">
+                    {diaSeleccionado.format("dddd, D [de] MMMM")} a las {horaSeleccionada}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setTipoPartido("normal")}
+                    className={`py-3 px-4 rounded-lg font-medium transition-all ${tipoPartido === "normal" ?
+                      "bg-gradient-to-r from-emerald-500 to-teal-600 text-white" :
+                      "bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700"
+                      }`}
+                  >
+                    Normal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTipoPartido("abierto")}
+                    className={`py-3 px-4 rounded-lg font-medium transition-all ${tipoPartido === "abierto" ?
+                      "bg-gradient-to-r from-purple-500 to-pink-600 text-white" :
+                      "bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700"
+                      }`}
+                  >
+                    Abierto
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setModalidadPartido("individual")}
+                    className={`py-3 px-4 rounded-lg font-medium transition-all ${modalidadPartido === "individual"
+                        ? (tipoPartido === "normal"
+                          ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
+                          : "bg-gradient-to-r from-purple-500 to-pink-600 text-white")
+                        : "bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700"
+                      }`}
+                  >
+                    Individual
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setModalidadPartido("dobles")}
+                    className={`py-3 px-4 rounded-lg font-medium transition-all ${modalidadPartido === "dobles"
+                        ? (tipoPartido === "normal"
+                          ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
+                          : "bg-gradient-to-r from-purple-500 to-pink-600 text-white")
+                        : "bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700"
+                      }`}
+                  >
+                    Dobles
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="block">
+                    <span className="text-gray-400 font-medium mb-1">Jugador 1 (Tú)</span>
+                    <input
+                      type="text"
+                      required
+                      value={jugador1}
+                      onChange={(e) => setJugador1(e.target.value)}
+                      className="mt-1 block w-full rounded-lg bg-gray-800 border border-gray-700 text-gray-200 focus:border-cyan-500 focus:ring focus:ring-cyan-500/30 px-4 py-3"
+                      placeholder="Tu nombre de usuario"
+                    />
+                  </label>
+
+                  {modalidadPartido === "individual" && (
+                    <label className="block">
+                      <span className="text-gray-400 font-medium mb-1">Jugador 2</span>
+                      <input
+                        type="text"
+                        value={jugador2}
+                        onChange={(e) => setJugador2(e.target.value)}
+                        className="mt-1 block w-full rounded-lg bg-gray-800 border border-gray-700 text-gray-200 focus:border-cyan-500 focus:ring focus:ring-cyan-500/30 px-4 py-3"
+                        placeholder="Nombre de usuario"
+                      />
+                    </label>
+                  )}
+
+                  {modalidadPartido === "dobles" && (
+                    <>
+                      <label className="block">
+                        <span className="text-gray-400 font-medium mb-1">Jugador 2</span>
+                        <input
+                          type="text"
+                          required={tipoPartido === "normal"}
+                          value={jugador2}
+                          onChange={(e) => setJugador2(e.target.value)}
+                          className="mt-1 block w-full rounded-lg bg-gray-800 border border-gray-700 text-gray-200 focus:border-cyan-500 focus:ring focus:ring-cyan-500/30 px-4 py-3"
+                          placeholder="Nombre de usuario"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="text-gray-400 font-medium mb-1">Jugador 3</span>
+                        <input
+                          type="text"
+                          required={tipoPartido === "normal"}
+                          value={jugador3}
+                          onChange={(e) => setJugador3(e.target.value)}
+                          className="mt-1 block w-full rounded-lg bg-gray-800 border border-gray-700 text-gray-200 focus:border-cyan-500 focus:ring focus:ring-cyan-500/30 px-4 py-3"
+                          placeholder="Nombre de usuario"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="text-gray-400 font-medium mb-1">Jugador 4</span>
+                        <input
+                          type="text"
+                          required={tipoPartido === "normal"}
+                          value={jugador4}
+                          onChange={(e) => setJugador4(e.target.value)}
+                          className="mt-1 block w-full rounded-lg bg-gray-800 border border-gray-700 text-gray-200 focus:border-cyan-500 focus:ring focus:ring-cyan-500/30 px-4 py-3"
+                          placeholder="Nombre de usuario"
+                        />
+                      </label>
+                    </>
+                  )}
+      </div> 
+
+                  <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                    <div className="flex justify-between text-gray-300">
+                      <span>Duración:</span>
+                      <span className="font-medium text-cyan-400">
+                        {modalidadPartido === "dobles" ? "2 horas" : "1 hora 30 minutos"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {mensaje && (
+                    <div className={`p-3 rounded-lg text-center ${mensaje.includes("éxito") ?
+                      "bg-green-900/30 text-green-400 border border-green-800" :
+                      "bg-red-900/30 text-red-400 border border-red-800"
+                      }`}>
+                      {mensaje}
+                    </div>
+                  )}
+
+                  <div className="flex justify-between gap-4 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormVisible(false);
+                        setMensaje(null);
+                      }}
+                      className="flex-1 py-3 px-4 rounded-lg bg-gray-800 text-gray-300 font-medium hover:bg-gray-700 border border-gray-700 transition-all"
+                    >
+                      Cancelar
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${tipoPartido === "abierto" ?
+                        "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white" :
+                        "bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white"
+                        } ${loading ? "opacity-70" : ""}`}
+                    >
+                      {loading ? (
+                        <span className="flex items-center justify-center">
+                          <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Procesando...
+                        </span>
+                      ) : tipoPartido === "abierto" ? "ABRIR PARTIDO" : "CONFIRMAR RESERVA"}
+                    </button>
+                  </div>
+              </form>
             </div>
           )}
         </div>
-
-        {/* Formulario de reserva */}
-        {formVisible && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center p-4 z-50">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                reservar();
-              }}
-              className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-6"
-            >
-              <h3 className="text-2xl font-bold text-center text-green-800">
-                Confirmar Reserva
-              </h3>
-
-              <div className="bg-green-50 rounded-xl p-4 text-center">
-                <div className="text-lg font-semibold text-green-700">Pista {pistaSeleccionada}</div>
-                <div className="text-gray-600">
-                  {diaSeleccionado.format("dddd, D [de] MMMM")} a las {horaSeleccionada}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <label className="block">
-                  <span className="text-gray-700 font-medium">Jugador 1</span>
-                  <input
-                    type="text"
-                    required
-                    value={jugador1}
-                    onChange={(e) => setJugador1(e.target.value)}
-                    className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50"
-                    placeholder="Nombre del jugador"
-                  />
-                </label>
-
-                <label className="block relative">
-                  <span className="text-gray-700 font-medium">Jugador 2 (Opcional)</span>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={jugador2}
-                      onChange={(e) => setJugador2(e.target.value)}
-                      onFocus={() => setShowAmigosDropdown(true)}
-                      onBlur={() => setTimeout(() => setShowAmigosDropdown(false), 200)}
-                      className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50"
-                      placeholder="Nombre de usuario del amigo"
-                    />
-                    {showAmigosDropdown && (
-                      <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-                        {loadingAmigos ? (
-                          <div className="px-4 py-2 text-center text-gray-500">
-                            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-                          </div>
-                        ) : amigos.length === 0 ? (
-                          <div className="px-4 py-2 text-gray-500">
-                            No tienes amigos agregados
-                          </div>
-                        ) : (
-                          amigos.map((amigo) => (
-                            <div
-                              key={amigo.id}
-                              className="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center gap-3"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => {
-                                setJugador2(amigo.username);
-                                setShowAmigosDropdown(false);
-                              }}
-                            >
-                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                                {amigo.username.charAt(0).toUpperCase()}
-                              </div>
-                              <div>
-                                <div className="font-medium">{amigo.username}</div>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </label>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex justify-between text-gray-700">
-                    <span>Duración:</span>
-                    <span className="font-medium">1 hora 30 minutos</span>
-                  </div>
-                </div>
-              </div>
-
-              {mensaje && (
-                <div className={`p-3 rounded-lg text-center ${mensaje.includes("éxito") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                  {mensaje}
-                </div>
-              )}
-
-              <div className="flex justify-between gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFormVisible(false);
-                    setMensaje(null);
-                  }}
-                  className="flex-1 py-3 px-4 rounded-lg bg-gray-200 text-gray-800 font-medium hover:bg-gray-300 transition"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 py-3 px-4 rounded-lg bg-gradient-to-r from-green-600 to-green-700 text-white font-medium hover:from-green-700 hover:to-green-800 transition disabled:opacity-70"
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Procesando...
-                    </span>
-                  ) : "Confirmar Reserva"}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
       </main>
     </>
   );
