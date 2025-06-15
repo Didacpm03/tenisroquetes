@@ -8,6 +8,8 @@ interface ConfirmModalProps {
   onCancel: () => void;
   confirmText?: string;
   cancelText?: string;
+  confirmColor?: string; // ✅ añadir esta línea
+
 }
 
 export default function ConfirmModal({

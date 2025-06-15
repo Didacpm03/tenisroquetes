@@ -21,6 +21,8 @@ interface Reserva {
   tipo_partido?: "normal" | "abierto";
   modalidad?: "individual" | "dobles";
   estado?: "abierto" | "completo";
+  victoria?: string | null;  // Nombre del jugador que ganó
+  derrota?: string | null;   // Nombre del jugador que perdió
 }
 
 export default function MisReservas() {
@@ -45,6 +47,8 @@ export default function MisReservas() {
     setUser(user);
     fetchReservas(user);
   }, []);
+
+
 
   async function fetchReservas(user: any) {
     setLoading(true);
@@ -85,6 +89,38 @@ export default function MisReservas() {
       setLoading(false);
     }
   }
+
+  // Actualiza la función puntuarPartido
+  async function puntuarPartido(id: number, tipo: string, ganador: string, perdedor: string) {
+  if (!user) return;
+
+  try {
+    const tableName = tipo === 'padel' ? 'reservas_padel' : 'reservas';
+
+    // Actualizar la base de datos
+    const { error } = await supabase
+      .from(tableName)
+      .update({
+        victoria: ganador,
+        derrota: perdedor
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    // Actualizar estado local
+    setReservas(prev => prev.map(r =>
+      r.id === id ? {
+        ...r,
+        victoria: ganador,
+        derrota: perdedor
+      } : r
+    ));
+    setSuccess('Partido puntuado correctamente');
+  } catch (err) {
+    setError('Error al puntuar partido: ' + (err instanceof Error ? err.message : 'Error desconocido'));
+  }
+}
 
   async function cancelarReserva(id: number, tipo: string = 'tenis') {
     setCancelandoId(id);
@@ -224,8 +260,8 @@ export default function MisReservas() {
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-3 mb-3">
                           <span className={`px-3 py-1 rounded-full text-sm font-medium ${reserva.tipo === 'padel'
-                              ? 'bg-purple-900/50 text-purple-400'
-                              : 'bg-blue-900/50 text-blue-400'
+                            ? 'bg-purple-900/50 text-purple-400'
+                            : 'bg-blue-900/50 text-blue-400'
                             }`}>
                             {reserva.tipo === 'padel' ? 'PÁDEL' : 'TENIS'} - Pista {reserva.pista}
                           </span>
@@ -290,6 +326,63 @@ export default function MisReservas() {
                         </div>
                       </div>
 
+                      {dayjs(reserva.fecha).isBefore(dayjs(), 'day') && (
+  <div className="mt-4 space-y-3">
+    {reserva.victoria && reserva.derrota ? (
+      <div className="space-y-1">
+        <p className="text-sm text-gray-400">
+          Ganador: <span className="text-green-400">{reserva.victoria}</span>
+        </p>
+        <p className="text-sm text-gray-400">
+          Perdedor: <span className="text-red-400">{reserva.derrota}</span>
+        </p>
+      </div>
+    ) : (
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Ganador:</label>
+          <select
+            className="bg-gray-700 text-white rounded px-3 py-2 w-full"
+            onChange={(e) => {
+              const ganador = e.target.value;
+              const perdedor = [reserva.jugador1, reserva.jugador2, reserva.jugador3, reserva.jugador4]
+                .filter(j => j && j !== ganador)[0] || '';
+              puntuarPartido(reserva.id, reserva.tipo || 'tenis', ganador, perdedor);
+            }}
+          >
+            <option value="">Seleccionar ganador</option>
+            {[reserva.jugador1, reserva.jugador2, reserva.jugador3, reserva.jugador4]
+              .filter(j => j)
+              .map(jugador => (
+                <option key={jugador} value={jugador}>{jugador}</option>
+              ))}
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Perdedor:</label>
+          <select
+            className="bg-gray-700 text-white rounded px-3 py-2 w-full"
+            onChange={(e) => {
+              const perdedor = e.target.value;
+              const ganador = [reserva.jugador1, reserva.jugador2, reserva.jugador3, reserva.jugador4]
+                .filter(j => j && j !== perdedor)[0] || '';
+              puntuarPartido(reserva.id, reserva.tipo || 'tenis', ganador, perdedor);
+            }}
+          >
+            <option value="">Seleccionar perdedor</option>
+            {[reserva.jugador1, reserva.jugador2, reserva.jugador3, reserva.jugador4]
+              .filter(j => j)
+              .map(jugador => (
+                <option key={jugador} value={jugador}>{jugador}</option>
+              ))}
+          </select>
+        </div>
+      </div>
+    )}
+  </div>
+)}
+
                       {/* Acciones */}
                       {reserva.jugador1 === user?.username && (
                         <div className="flex flex-col sm:flex-row gap-3">
@@ -297,8 +390,8 @@ export default function MisReservas() {
                             onClick={() => handleCancelClick(reserva.id, reserva.tipo)}
                             disabled={cancelandoId === reserva.id}
                             className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${cancelandoId === reserva.id
-                                ? 'bg-gray-700 text-gray-400'
-                                : 'bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white shadow-lg'
+                              ? 'bg-gray-700 text-gray-400'
+                              : 'bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white shadow-lg'
                               }`}
                           >
                             {cancelandoId === reserva.id ? (

@@ -10,7 +10,7 @@ import SuperAdmin from './pages/SuperAdmin';
 import Partidos from './pages/Partidos';
 import ChangePassword from './pages/ChangePassword';
 import Manual from './pages/manual';
-import Amigos from './pages/Amigos';
+import EstadisticasJugador from './pages/EstadisticasJugador';
 import Loader from './components/Loader';
 import Notificaciones from './pages/Notificaciones';
 import Tutorial from './components/Tutorial'; // 👈 Importa el componente Tutorial
@@ -43,7 +43,7 @@ function App() {
         <Route path="/partidos" element={<Partidos />} />
         <Route path="/change-password" element={<ChangePassword />} />
         <Route path="/manual" element={<Manual />} />
-        <Route path="/amigos" element={<Amigos />} />
+        <Route path="/estadisticas-jugador" element={<EstadisticasJugador />} />
         <Route path="/notificaciones" element={<Notificaciones />} />
       </Routes>
     </Router>
