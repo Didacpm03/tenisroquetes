@@ -284,7 +284,7 @@ export default function EstadisticasJugador() {
                                                                 ? 'bg-purple-900/50 text-purple-400'
                                                                 : 'bg-blue-900/50 text-blue-400'
                                                                 }`}>
-                                                                {partido.tipo === 'padel' ? 'PÁDEL' : 'TENIS'} - Pista {partido.pista}
+                                                                {partido.tipo === 'padel' ? 'PÁDEL' : 'TENNIS'} - Pista {partido.pista}
                                                             </span>
                                                             {getResultadoBadge(partido)}
                                                         </div>

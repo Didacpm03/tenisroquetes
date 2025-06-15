@@ -1,177 +1,240 @@
-/* loader.css */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-
-:root {
-  --neon-green: #00ff9d;
-  --neon-blue: #00b8ff;
-  --neon-purple: #bd00ff;
-  --glow-effect: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green), 0 0 30px var(--neon-green);
-}
-
-.loader-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #0a0a0a;
-  overflow: hidden;
-  position: relative;
-  font-family: 'Orbitron', sans-serif;
-}
-
-.loader-background {
-  position: absolute;
+.tenis-loader-container {
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
-  background: 
-    radial-gradient(circle at 25% 25%, rgba(0, 255, 157, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(0, 184, 255, 0.03) 0%, transparent 50%),
-    linear-gradient(135deg, #0a0a0a 0%, #111 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  z-index: 9999;
+  overflow: hidden;
 }
 
-.loader-content {
+.court-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0.1;
+}
+
+.court-line {
+  position: absolute;
+  background: #e2e8f0;
+}
+
+.court-line.horizontal {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  transform: translateY(-50%);
+}
+
+.court-line.vertical {
+  left: 50%;
+  top: 0;
+  height: 100%;
+  width: 2px;
+  transform: translateX(-50%);
+}
+
+.court-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  border: 2px solid #e2e8f0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.tenis-loader-content {
   position: relative;
   z-index: 2;
-  text-align: center;
-  width: 90%;
-  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 600px;
+  width: 100%;
 }
 
-.digital-clock {
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.digital-clock .time {
-  font-size: 3.5rem;
-  color: var(--neon-green);
-  text-shadow: var(--glow-effect);
-  letter-spacing: 3px;
-  margin-bottom: 0.5rem;
-}
-
-.digital-clock .date {
-  font-size: 1.2rem;
-  color: var(--neon-blue);
-  text-shadow: 0 0 5px var(--neon-blue);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-.loader-text {
-  font-size: 2.5rem;
-  color: var(--neon-green);
-  text-shadow: var(--glow-effect);
-  letter-spacing: 4px;
-  margin-bottom: 2rem;
+.tennis-ball-loader {
+  width: 120px;
+  height: 120px;
   position: relative;
+  animation: bounce 1.5s infinite alternate;
+}
+
+.tennis-ball-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+  0% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-30px) scale(1.1, 0.9); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+.seam {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 4px;
+  background: #1e293b;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.seam::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 4px;
+  background: #1e293b;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.animation-dots {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: #f43f5e;
+  border-radius: 50%;
+  transform-origin: 60px 0;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg) translateX(60px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+}
+
+@keyframes bounce {
+  0% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-30px) scale(1.1, 0.9); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+.tenis-loader-text.neon-text {
+  font-size: 3rem;
+  font-weight: 700;
   text-transform: uppercase;
+  color: transparent;
+  text-shadow: 0 0 5px #fff;
+  position: relative;
 }
 
-.text-flicker {
-  animation: flicker 3s infinite alternate;
+.tenis-loader-text .letter {
+  display: inline-block;
+  animation: neon-flicker 1.5s infinite alternate;
+  animation-delay: var(--delay);
 }
 
-@keyframes flicker {
-  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-    opacity: 1;
-    text-shadow: var(--glow-effect);
+@keyframes neon-flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+    color: #fff;
+    text-shadow: 
+      0 0 5px #fff,
+      0 0 10px #fff,
+      0 0 20px #f43f5e,
+      0 0 40px #f43f5e;
   }
-  20%, 24%, 55% {
-    opacity: 0.6;
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+    color: #94a3b8;
     text-shadow: none;
   }
 }
 
-.loader-percentage {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  font-size: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.percentage-label {
-  color: var(--neon-blue);
-}
-
-.percentage-value {
-  color: var(--neon-green);
-  font-weight: bold;
-}
-
-.cyber-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 6px;
-  width: 300px;
-  margin: 0 auto 2rem auto;
-}
-
-.grid-pixel {
-  height: 12px;
-  background: var(--neon-green);
-  opacity: 0.3;
-  animation: pixel-flicker 1.5s infinite ease-in-out;
-  border-radius: 2px;
-}
-
-@keyframes pixel-flicker {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.8; }
-}
-
-.cyber-progress-container {
+.tennis-progress-container {
   width: 100%;
-  height: 10px;
-  background: rgba(0, 255, 157, 0.1);
-  margin: 2rem auto;
-  position: relative;
-  border-radius: 5px;
+  max-width: 400px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
   overflow: hidden;
-  border: 1px solid rgba(0, 255, 157, 0.2);
-}
-
-.cyber-progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
   position: relative;
-  transition: width 0.1s linear;
+  margin-top: 1rem;
 }
 
-.progress-glare {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 20px;
-  background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.4));
-  transform: skewX(-30deg);
+.tennis-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #f43f5e 0%, #f97316 100%);
+  position: relative;
+  transition: width 0.1s ease-out;
 }
 
-.progress-ticks {
+.net-pattern {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  display: flex;
+  background: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 5px,
+      rgba(255, 255, 255, 0.2) 5px,
+      rgba(255, 255, 255, 0.2) 10px
+    );
 }
 
-.progress-tick {
-  flex: 1;
-  border-right: 1px solid rgba(0, 255, 157, 0.2);
-  height: 100%;
+.progress-percentage {
+  position: absolute;
+  right: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: white;
+  font-size: 0.9rem;
 }
 
-.system-message {
-  margin-top: 1.5rem;
-  font-size: 1.1rem;
-  color: var(--neon-purple);
-  text-shadow: 0 0 8px var(--neon-purple);
-  min-height: 1.5rem;
+.tennis-status-message {
+  color: #94a3b8;
+  font-size: 1.2rem;
+  text-align: center;
+  min-height: 1.5em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tennis-time-display {
+  margin-top: 2rem;
+  text-align: center;
+  color: #e2e8f0;
+}
+
+.tennis-time-display .time {
+  font-size: 2rem;
+  font-weight: 300;
+  letter-spacing: 2px;
+}
+
+.tennis-time-display .date {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  text-transform: uppercase;
 }

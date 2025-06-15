@@ -6,7 +6,7 @@ const Footer: React.FC = () => {
     <footer className="bg-gray-900 text-white py-10">
       <div className="max-w-4xl mx-auto px-4 text-center">
         <h2 className="text-2xl font-bold tracking-tighter mb-4">
-          TENIS<span className="text-orange-500">ROQUETES</span>
+          TENNIS<span className="text-orange-500">ROQUETES</span>
         </h2>
         <p className="text-gray-400 mb-6">
           Web de Tennis Roquetes
