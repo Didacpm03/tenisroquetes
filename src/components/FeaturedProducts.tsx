@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import Tenis2 from "../assets/png/rapida.png";
-import Tenis3 from "../assets/png/5730494-uhd_4096_2160_25fps.mp4";
+import Tenis3 from "../assets/png/bernd-dittrich-_AYNT8tkRqI-unsplash.jpg";
 import Tenis4 from "../assets/png/tenis.png";
 import Tenis5 from "../assets/png/IMG_9870__1_-removebg-preview.png";
 import { useUser } from "../context/UserContext";
@@ -35,19 +35,18 @@ export default function FeaturedProducts() {
 
   return (
     <div className="bg-gradient-to-b from-black to-gray-900 text-white">
-      {/* HERO SECTION con datos personales */}
+      {/* HERO SECTION con imagen de fondo */}
       <section className="relative h-screen w-full overflow-hidden">
         <div className="absolute inset-0 z-10 bg-black bg-opacity-40"></div>
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
+
+        {/* Imagen en lugar de video */}
+        <img
+          src={Tenis3}
+          alt="Fondo club tenis"
           className="absolute w-full h-full object-cover object-center scale-110 z-0"
-        >
-          <source src={Tenis3} type="video/mp4" />
-          Tu navegador no soporta el video.
-        </video>
+        />
+
+        {/* Contenido encima */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20">
           <h1 className="text-5xl md:text-7xl font-extrabold mb-6 drop-shadow-lg animate-fade-in">
             Club de Tennis <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300">Roquetes</span>
@@ -82,128 +81,136 @@ export default function FeaturedProducts() {
             </div>
           )}
 
-          <p className="text-xl md:text-2xl max-w-3xl mb-10 text-gray-200 font-light drop-shadow animate-pulse">
-            Reservas rápidas y online. Revisa tu clasificación y mucho más!
-          </p>
+          {/* Botón mejorado */}
           <Link to="/reservar">
-            <button className="relative overflow-hidden group border-2 border-orange-500 hover:border-orange-400 px-10 py-4 text-lg rounded-full transition-all duration-300 hover:scale-105 bg-black bg-opacity-30">
-              <span className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              <span className="relative z-10 flex items-center text-white">
-                Reservar ahora
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            <button className="group relative px-8 py-4 text-lg font-bold text-white transition-all duration-300 hover:scale-105">
+              <span className="relative z-10 flex items-center">
+                RESERVAR AHORA
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 ml-3 transition-transform group-hover:translate-x-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </span>
+
+              {/* Fondo animado */}
+              <span className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-400 rounded-full opacity-90 group-hover:opacity-100 transition-opacity duration-300"></span>
+
+              {/* Efecto de brillo */}
+              <span className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <span className="absolute top-0 left-0 w-full h-full bg-white/10 rounded-full animate-pulse"></span>
+              </span>
+
+              {/* Borde animado */}
+              <span className="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-white/50 transition-all duration-500"></span>
             </button>
           </Link>
         </div>
       </section>
 
-      
+
 
       {/* MAIN CONTENT - Futuristic Design */}
       <section className="py-24 px-6 max-w-7xl mx-auto space-y-32">
 
-         {/* Sección Reservar - Futuristic Card */}
-       {/* Sección Reservar - Futuristic Card */}
-<div className="group relative">
-  <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 rounded-3xl blur-3xl opacity-70 group-hover:opacity-100 transition-opacity duration-500"></div>
-  <div className="grid md:grid-cols-2 gap-16 items-center relative z-10">
-    <div className="space-y-8 order-2 md:order-1">
-      <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
-        HORARIO <span className="text-orange-400">Y RESERVAS</span>
-      </h2>
-      <p className="text-lg leading-relaxed text-gray-300">
-        Planifica tus reservas hasta 7 días antes
-      </p>
-      
-      {/* Modern Schedule Cards */}
-      <div className="grid grid-cols-1 gap-6">
-        <div className="p-5 bg-gray-900/50 border border-blue-800/50 rounded-xl hover:border-blue-400 transition-all duration-300 group-hover:shadow-lg">
-          <div className="flex items-start">
-            <div className="flex-shrink-0 h-12 w-12 bg-blue-500/20 rounded-lg flex items-center justify-center border border-blue-500/30 mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+        {/* Sección Reservar - Futuristic Card */}
+        {/* Sección Reservar - Futuristic Card */}
+        <div className="group relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 rounded-3xl blur-3xl opacity-70 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="grid md:grid-cols-2 gap-16 items-center relative z-10">
+            <div className="space-y-8 order-2 md:order-1">
+              <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
+                HORARIO <span className="text-orange-400">Y RESERVAS</span>
+              </h2>
+              <p className="text-lg leading-relaxed text-gray-300">
+                Planifica tus reservas hasta 7 días antes
+              </p>
+
+              {/* Modern Schedule Cards */}
+              <div className="grid grid-cols-1 gap-6">
+                <div className="p-5 bg-gray-900/50 border border-blue-800/50 rounded-xl hover:border-blue-400 transition-all duration-300 group-hover:shadow-lg">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 h-12 w-12 bg-blue-500/20 rounded-lg flex items-center justify-center border border-blue-500/30 mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-blue-300 flex items-center">
+                        Lunes a Viernes
+                        <span className="ml-2 text-xs bg-blue-900/50 text-blue-300 px-2 py-1 rounded-full">DÍAS LABORABLES</span>
+                      </h3>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <div className="bg-blue-900/20 p-2 rounded-lg border border-blue-800/30">
+                          <div className="text-blue-400 text-xs">MAÑANA</div>
+                          <div className="text-white font-medium">10:00 - 13:00</div>
+                        </div>
+                        <div className="bg-blue-900/20 p-2 rounded-lg border border-blue-800/30">
+                          <div className="text-blue-400 text-xs">TARDE</div>
+                          <div className="text-white font-medium">16:00 - 22:00</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-5 bg-gray-900/50 border border-cyan-800/50 rounded-xl hover:border-cyan-400 transition-all duration-300 group-hover:shadow-lg">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 h-12 w-12 bg-cyan-500/20 rounded-lg flex items-center justify-center border border-cyan-500/30 mr-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-cyan-300 flex items-center">
+                        Fin de Semana
+                        <span className="ml-2 text-xs bg-cyan-900/50 text-cyan-300 px-2 py-1 rounded-full">SÁBADO/DOMINGO</span>
+                      </h3>
+                      <div className="mt-2">
+                        <div className="bg-cyan-900/20 p-2 rounded-lg border border-cyan-800/30">
+                          <div className="text-cyan-400 text-xs">MAÑANA</div>
+                          <div className="text-white font-medium">09:00 - 14:00</div>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-500 italic">Tardes: Cerrado</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <Link to="/reservar">
+                  <button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white px-8 py-4 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 group w-full md:w-auto justify-center">
+                    <span>Reservar ahora</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </Link>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-blue-300 flex items-center">
-                Lunes a Viernes
-                <span className="ml-2 text-xs bg-blue-900/50 text-blue-300 px-2 py-1 rounded-full">DÍAS LABORABLES</span>
-              </h3>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <div className="bg-blue-900/20 p-2 rounded-lg border border-blue-800/30">
-                  <div className="text-blue-400 text-xs">MAÑANA</div>
-                  <div className="text-white font-medium">10:00 - 13:00</div>
+
+            <div className="relative overflow-hidden rounded-3xl shadow-2xl transform transition-all duration-500 group-hover:scale-[1.02] border-2 border-blue-500/30 group-hover:border-blue-500/50 order-1 md:order-2">
+              <img
+                src={Tenis4}
+                alt="Reserva"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+              <div className="absolute bottom-0 left-0 p-8">
+                <div className="text-blue-400 font-mono text-sm mb-2">RESERVE SYSTEM v3.1</div>
+                <div className="flex space-x-2">
+                  <div className="h-1 w-10 bg-blue-500"></div>
+                  <div className="h-1 w-5 bg-blue-400/50"></div>
+                  <div className="h-1 w-5 bg-blue-400/30"></div>
                 </div>
-                <div className="bg-blue-900/20 p-2 rounded-lg border border-blue-800/30">
-                  <div className="text-blue-400 text-xs">TARDE</div>
-                  <div className="text-white font-medium">16:00 - 22:00</div>
-                </div>
+              </div>
+              <div className="absolute top-4 right-4 bg-blue-500/90 text-xs font-mono px-3 py-1 rounded-full animate-pulse">
+                ONLINE BOOKING
+              </div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+
               </div>
             </div>
           </div>
-        </div>
-        
-        <div className="p-5 bg-gray-900/50 border border-cyan-800/50 rounded-xl hover:border-cyan-400 transition-all duration-300 group-hover:shadow-lg">
-          <div className="flex items-start">
-            <div className="flex-shrink-0 h-12 w-12 bg-cyan-500/20 rounded-lg flex items-center justify-center border border-cyan-500/30 mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-cyan-300 flex items-center">
-                Fin de Semana
-                <span className="ml-2 text-xs bg-cyan-900/50 text-cyan-300 px-2 py-1 rounded-full">SÁBADO/DOMINGO</span>
-              </h3>
-              <div className="mt-2">
-                <div className="bg-cyan-900/20 p-2 rounded-lg border border-cyan-800/30">
-                  <div className="text-cyan-400 text-xs">MAÑANA</div>
-                  <div className="text-white font-medium">09:00 - 14:00</div>
-                </div>
-                <div className="mt-2 text-xs text-gray-500 italic">Tardes: Cerrado</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="pt-4">
-        <Link to="/reservar">
-          <button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white px-8 py-4 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 group w-full md:w-auto justify-center">
-            <span>Reservar ahora</span>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clipRule="evenodd" />
-            </svg>
-          </button>
-        </Link>
-      </div>
-    </div>
-    
-    <div className="relative overflow-hidden rounded-3xl shadow-2xl transform transition-all duration-500 group-hover:scale-[1.02] border-2 border-blue-500/30 group-hover:border-blue-500/50 order-1 md:order-2">
-      <img
-        src={Tenis4}
-        alt="Reserva"
-        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-      <div className="absolute bottom-0 left-0 p-8">
-        <div className="text-blue-400 font-mono text-sm mb-2">RESERVE SYSTEM v3.1</div>
-        <div className="flex space-x-2">
-          <div className="h-1 w-10 bg-blue-500"></div>
-          <div className="h-1 w-5 bg-blue-400/50"></div>
-          <div className="h-1 w-5 bg-blue-400/30"></div>
-        </div>
-      </div>
-      <div className="absolute top-4 right-4 bg-blue-500/90 text-xs font-mono px-3 py-1 rounded-full animate-pulse">
-        ONLINE BOOKING
-      </div>
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-        
-      </div>
-    </div>
-  </div>
         </div>
         {/* Sección Mis Partidos - Futuristic Hologram */}
         <div className="group relative">
@@ -220,7 +227,7 @@ export default function FeaturedProducts() {
                       <div className="h-1 w-5 bg-amber-400/30"></div>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-gray-900/50 border border-gray-800 rounded-xl hover:border-amber-400 transition-all duration-300">
                       <div className="text-amber-400 text-sm">Victorias</div>
@@ -239,7 +246,7 @@ export default function FeaturedProducts() {
                       <div className="text-3xl font-bold text-white">{userStats.points}</div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-8">
                     <div className="text-amber-300 text-sm mb-2">ÚLTIMOS PARTIDOS</div>
                     <div className="space-y-2">
@@ -302,7 +309,7 @@ export default function FeaturedProducts() {
           </div>
         </div>
 
-       
+
 
         {/* Sección Clasificación - Holographic Effect */}
         <div className="group relative">

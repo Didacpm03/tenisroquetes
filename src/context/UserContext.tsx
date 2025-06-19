@@ -8,6 +8,8 @@ export interface User {
   saldo?: number;
   xp?: number;
   grupo?: string;
+    avatar?: number; // 👈 Añadido (puede ser opcional o requerido)
+
 }
 
 interface UserContextType {

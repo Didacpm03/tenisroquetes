@@ -17,6 +17,7 @@ interface Partido {
     hora: string;
     pista: number;
     tipo: 'tenis' | 'padel';
+    modalidad?: 'individual' | 'dobles';
     victoria?: string | null;  // Nombre del jugador que ganó
     derrota?: string | null;   // Nombre del jugador que perdió
 }
@@ -68,7 +69,6 @@ export default function EstadisticasJugador() {
 
             if (tenisError) throw tenisError;
 
-            // CONSULTA PARA PARTIDOS DE PÁDEL - DEBE IR AQUÍ (justo después de tenisData)
             const { data: padelData, error: padelError } = await supabase
                 .from('reservas_padel')
                 .select('*')
@@ -99,13 +99,42 @@ export default function EstadisticasJugador() {
         setPuntuandoId(partidoId);
         try {
             const tableName = tipo === 'padel' ? 'reservas_padel' : 'reservas';
+            const partido = partidos.find(p => p.id === partidoId);
+
+            if (!partido) return;
+
+            let valorGanador: string;
+            let valorPerdedor: string;
+
+            if (partido.modalidad === 'dobles') {
+                // Para dobles, usamos parejas
+                const pareja1 = [partido.jugador1, partido.jugador2].filter(Boolean).join(',');
+                const pareja2 = [partido.jugador3, partido.jugador4].filter(Boolean).join(',');
+
+                if ([partido.jugador1, partido.jugador2].includes(user.username)) {
+                    valorGanador = resultado === 'victoria' ? pareja1 : pareja2;
+                    valorPerdedor = resultado === 'victoria' ? pareja2 : pareja1;
+                } else {
+                    valorGanador = resultado === 'victoria' ? pareja2 : pareja1;
+                    valorPerdedor = resultado === 'victoria' ? pareja1 : pareja2;
+                }
+            } else {
+                // Para individuales, comportamiento normal
+                valorGanador = resultado === 'victoria' ? user.username :
+                    [partido.jugador1, partido.jugador2, partido.jugador3, partido.jugador4]
+                        .filter(j => j && j !== user.username).join(',');
+                valorPerdedor = resultado === 'victoria' ?
+                    [partido.jugador1, partido.jugador2, partido.jugador3, partido.jugador4]
+                        .filter(j => j && j !== user.username).join(',') :
+                    user.username;
+            }
 
             // Actualizar la base de datos
             const { error } = await supabase
                 .from(tableName)
                 .update({
-                    [resultado]: user.username,  // Guardamos el nombre del usuario
-                    [resultado === 'victoria' ? 'derrota' : 'victoria']: null
+                    victoria: valorGanador,
+                    derrota: valorPerdedor
                 })
                 .eq('id', partidoId);
 
@@ -115,8 +144,8 @@ export default function EstadisticasJugador() {
             setPartidos(prev => prev.map(p =>
                 p.id === partidoId ? {
                     ...p,
-                    [resultado]: user.username,
-                    [resultado === 'victoria' ? 'derrota' : 'victoria']: null
+                    victoria: valorGanador,
+                    derrota: valorPerdedor
                 } : p
             ));
         } catch (err) {
@@ -126,11 +155,33 @@ export default function EstadisticasJugador() {
         }
     };
 
+    const esParteDeEquipo = (jugador: string, equipo: string | null | undefined) => {
+        if (!equipo) return false;
+        return equipo.split(',').includes(jugador);
+    };
+
+    // Luego definir getEstadisticas que usa esParteDeEquipo
+    const getEstadisticas = () => {
+        const totalPartidos = partidos.length;
+        const victorias = partidos.filter(p =>
+            esParteDeEquipo(jugadorEncontrado?.username, p.victoria)
+        ).length;
+        const derrotas = partidos.filter(p =>
+            esParteDeEquipo(jugadorEncontrado?.username, p.derrota)
+        ).length;
+        const porcentajeVictorias = totalPartidos > 0 ? Math.round((victorias / totalPartidos) * 100) : 0;
+
+        return { totalPartidos, victorias, derrotas, porcentajeVictorias };
+    };
+
+    const { totalPartidos, victorias, derrotas, porcentajeVictorias } = getEstadisticas();
+
+
     const getResultadoBadge = (partido: Partido) => {
-        if (partido.victoria === jugadorEncontrado?.username) {
+        if (esParteDeEquipo(jugadorEncontrado?.username, partido.victoria)) {
             return <span className="px-2 py-1 rounded-full bg-green-900/30 text-green-400 text-xs font-medium">VICTORIA</span>;
         }
-        if (partido.derrota === jugadorEncontrado?.username) {
+        if (esParteDeEquipo(jugadorEncontrado?.username, partido.derrota)) {
             return <span className="px-2 py-1 rounded-full bg-red-900/30 text-red-400 text-xs font-medium">DERROTA</span>;
         }
         return <span className="px-2 py-1 rounded-full bg-gray-700 text-gray-400 text-xs font-medium">SIN PUNTUAR</span>;
@@ -166,7 +217,7 @@ export default function EstadisticasJugador() {
         );
 
         return esJugador && !yaPuntuado && dayjs(partido.fecha).isBefore(dayjs(), 'day');
-    };  // <-- Quitar la 's' que está aquí
+    };  
 
     return (
         <>
@@ -232,40 +283,32 @@ export default function EstadisticasJugador() {
                     {/* Resultados */}
                     {jugadorEncontrado && (
                         <div className="space-y-8">
-                            {/* Resumen */}
+                            {/* Resumen - Actualizado para usar las nuevas estadísticas */}
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                  <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 backdrop-blur-sm">
+                                <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 backdrop-blur-sm">
                                     <h3 className="text-lg text-gray-400 mb-2">TOTAL PARTIDOS</h3>
                                     <p className="text-4xl font-bold text-cyan-400">
-                                        {partidos.length}
+                                        {totalPartidos}
                                     </p>
                                 </div>
                                 <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 backdrop-blur-sm">
-                                
                                     <h3 className="text-lg text-gray-400 mb-2">VICTORIAS</h3>
                                     <p className="text-4xl font-bold text-green-400">
-                                        {partidos.filter(p => p.victoria === jugadorEncontrado.username).length}
+                                        {victorias}
                                     </p>
                                 </div>
-                                 <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 backdrop-blur-sm">
+                                <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 backdrop-blur-sm">
                                     <h3 className="text-lg text-gray-400 mb-2">% VICTORIAS</h3>
                                     <p className="text-4xl font-bold text-purple-400">
-                                        {partidos.length > 0
-                                            ? Math.round(
-                                                (partidos.filter(p => p.victoria === jugadorEncontrado.username).length /
-                                                    partidos.length) * 100
-                                            )
-                                            : 0}%
+                                        {porcentajeVictorias}%
                                     </p>
                                 </div>
                                 <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 backdrop-blur-sm">
                                     <h3 className="text-lg text-gray-400 mb-2">DERROTAS</h3>
                                     <p className="text-4xl font-bold text-red-400">
-                                        {partidos.filter(p => p.derrota === jugadorEncontrado.username).length}
+                                        {derrotas}
                                     </p>
                                 </div>
-                              
-                               
                             </div>
 
                             {/* Detalle por mes */}
@@ -275,7 +318,7 @@ export default function EstadisticasJugador() {
                                         <h3 className="text-xl font-bold text-purple-400">{mes}</h3>
                                     </div>
                                     <div className="divide-y divide-gray-700">
-                                        {partidosMes.map((partido, index) => (
+                                        {partidosMes.map((partido,) => (
                                             <div key={partido.id} className="p-5 hover:bg-gray-700/30 transition-all">
                                                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                                     <div className="flex-1">
@@ -325,7 +368,7 @@ export default function EstadisticasJugador() {
                                                         </div>
                                                     </div>
 
-                                                   
+
                                                     {puedePuntuar(partido) && (
                                                         <div className="flex flex-col gap-2">
                                                             <button

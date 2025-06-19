@@ -56,7 +56,7 @@ export default function Navbar() {
           >
             <img src={Pelota} alt="Logo" className="w-8 h-8" />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">
-              Tennis Roquetes
+              Club Tennis Roquetes
             </span>
           </Link>
         </div>

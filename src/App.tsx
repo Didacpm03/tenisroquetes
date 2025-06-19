@@ -11,7 +11,7 @@ import Manual from './pages/manual';
 import EstadisticasJugador from './pages/EstadisticasJugador';
 import Loader from './components/Loader';
 import TennisOnboarding from './components/tennis-auth-onboarding';
-import { supabase } from '../supabaseClient';
+import Prueba from './pages/Prueba';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -33,6 +33,23 @@ function App() {
 
     checkAuth();
   }, []);
+
+    useEffect(() => {
+    const script1 = document.createElement("script");
+    script1.async = true;
+    script1.src = "https://www.googletagmanager.com/gtag/js?id=G-HE2305B7VJ";
+    document.head.appendChild(script1);
+
+    const script2 = document.createElement("script");
+    script2.innerHTML = `
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-HE2305B7VJ');
+    `;
+    document.head.appendChild(script2);
+  }, []);
+
 
   const handleLoginSuccess = () => {
     setAuthenticated(true);
@@ -58,6 +75,7 @@ function App() {
         <Route path="/change-password" element={<ChangePassword />} />
         <Route path="/manual" element={<Manual />} />
         <Route path="/estadisticas-jugador" element={<EstadisticasJugador />} />
+        <Route path="/prueba" element={<Prueba />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
